@@ -28,85 +28,15 @@ public class MikeTheMiner : MonoBehaviour
         m_random = new System.Random();
         int gridXBoundary = (int)(m_gridXSize / 2);
         int gridZBoundary = (int)(m_gridZSize / 2);
-        int movedir = 0;
+        // Similar to the Axis on controllers or input actions. -1 is left, +1 is right.
 
-        Vector3 mikePos = m_mikeTheMiner.transform.position;
+        Vector3 mikeStart = m_mikeTheMiner.transform.position;
+        FloorPositions.Add(mikeStart);
         Quaternion quaternion = Quaternion.identity;
-
-        bool moved = false;
-        bool isX = false;
-        int safetyCounter = 0;
-        int direction = 0; // Similar to the Axis on controllers or input actions. -1 is left, +1 is right.
-        FloorPositions.Add(mikePos);
-        while (m_sips > 0)
+        for (int i = 0; i < 4; i++) 
         {
-            movedir = m_random.Next(0, 4);
-            switch (movedir) 
-            {
-                case 0:
-                    direction = 1;
-                    if ((mikePos.x + (2 * direction)) <= gridXBoundary) 
-                    {
-                        isX = true;
-                        mikePos.x += direction;
-                        if (CheckValid(mikePos, isX, direction))
-                        { m_sips -= 1; moved = true; }
-                        else { mikePos.x -= direction; moved = false; }
-                    }
-                    break;
-                case 1:
-                    direction = -1;
-                    if ((mikePos.x + (2 * direction)) >= -gridXBoundary) 
-                    {
-                        isX = true;
-                        mikePos.x += direction;
-                        if (CheckValid(mikePos, isX, direction))
-                        { m_sips -= 1; moved = true; }
-                        else { mikePos.x -= direction; moved = false; }
-                    }
-                    break;
-                case 2:
-                    direction = 1;
-                    if ((mikePos.z + (2 * direction)) <= gridZBoundary) 
-                    {
-                        
-                        isX = false;
-                        mikePos.z += direction;
-                        if (CheckValid(mikePos, isX, direction))
-                        { m_sips -= 1; moved = true; }
-                        else 
-                        { mikePos.z -= direction; moved = false; }
-                    }
-                    break;
-                case 3:
-                    direction = -1;
-                    if ((mikePos.z + (2 * direction)) >= -gridZBoundary) 
-                    {
-                        isX = false;
-                        mikePos.z += direction;
-                        if (CheckValid(mikePos, isX, direction))
-                        { m_sips -= 1; moved = true; }
-                        else { mikePos.z -= direction; moved = false; ; }
-                    }
-                    break;
-                default:
-                    break;
-            }
-            if (moved)
-            {
-                FloorPositions.Add(mikePos);
-                if (isX) { mikePos.x += direction; }
-                else { mikePos.z += direction; }
-                FloorPositions.Add(mikePos);
-                m_mikeTheMiner.transform.position = mikePos;
-                safetyCounter = 0;
-            }
-            else
-            {
-                safetyCounter++;
-                if (safetyCounter >= 1000000) { break; }
-            }
-
+            m_mikeTheMiner.transform.position = mikeStart;
+            Path(m_sips, gridXBoundary, gridZBoundary);
         }
         Draw(gridXBoundary, gridZBoundary, quaternion);
     }
@@ -143,6 +73,89 @@ public class MikeTheMiner : MonoBehaviour
             else { return false; }
         }
     
+    }
+
+    void Path(int steps, int gridXBoundary, int gridZBoundary) 
+    {
+        int movedir = 0;
+
+        Vector3 mikePos = m_mikeTheMiner.transform.position;
+
+        bool moved = false;
+        bool isX = false;
+        int safetyCounter = 0;
+        int direction = 0;
+
+        while (m_sips > 0)
+        {
+            movedir = m_random.Next(0, 4);
+            switch (movedir)
+            {
+                case 0:
+                    direction = 1;
+                    if ((mikePos.x + (2 * direction)) <= gridXBoundary)
+                    {
+                        isX = true;
+                        mikePos.x += direction;
+                        if (CheckValid(mikePos, isX, direction))
+                        { m_sips -= 1; moved = true; }
+                        else { mikePos.x -= direction; moved = false; }
+                    }
+                    break;
+                case 1:
+                    direction = -1;
+                    if ((mikePos.x + (2 * direction)) >= -gridXBoundary)
+                    {
+                        isX = true;
+                        mikePos.x += direction;
+                        if (CheckValid(mikePos, isX, direction))
+                        { m_sips -= 1; moved = true; }
+                        else { mikePos.x -= direction; moved = false; }
+                    }
+                    break;
+                case 2:
+                    direction = 1;
+                    if ((mikePos.z + (2 * direction)) <= gridZBoundary)
+                    {
+
+                        isX = false;
+                        mikePos.z += direction;
+                        if (CheckValid(mikePos, isX, direction))
+                        { m_sips -= 1; moved = true; }
+                        else
+                        { mikePos.z -= direction; moved = false; }
+                    }
+                    break;
+                case 3:
+                    direction = -1;
+                    if ((mikePos.z + (2 * direction)) >= -gridZBoundary)
+                    {
+                        isX = false;
+                        mikePos.z += direction;
+                        if (CheckValid(mikePos, isX, direction))
+                        { m_sips -= 1; moved = true; }
+                        else { mikePos.z -= direction; moved = false; ; }
+                    }
+                    break;
+                default:
+                    break;
+            }
+            if (moved)
+            {
+                FloorPositions.Add(mikePos);
+                if (isX) { mikePos.x += direction; }
+                else { mikePos.z += direction; }
+                FloorPositions.Add(mikePos);
+                m_mikeTheMiner.transform.position = mikePos;
+                safetyCounter = 0;
+            }
+            else
+            {
+                safetyCounter++;
+                if (safetyCounter >= 10000) { break; }
+            }
+
+        }
     }
     void Draw(int gridXBoundary, int gridZBoundary, Quaternion quaternion) 
     {
