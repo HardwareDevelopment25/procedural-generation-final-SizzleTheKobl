@@ -390,6 +390,7 @@ GameObject:
   - component: {fileID: 549678088}
   - component: {fileID: 549678087}
   - component: {fileID: 549678086}
+  - component: {fileID: 549678091}
   m_Layer: 0
   m_Name: Mike
   m_TagString: Untagged
@@ -404,14 +405,14 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 549678085}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7de24b68a84e698449d53d76e1af415f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_sips: 500
-  m_gridXSize: 100
-  m_gridZSize: 100
+  m_steps: 2
+  m_gridXSize: 99
+  m_gridZSize: 99
   seed: 0
   m_mikeTheMiner: {fileID: 549678085}
   m_drawTile: {fileID: 1284175914}
@@ -499,11 +500,112 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 549678085}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
+  m_Father: {fileID: 922253648}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &549678091
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 549678085}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b6805cf14bb80b4d9feffe584396a9b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  imageSize: 128
+  m_material: {fileID: 2100000, guid: da6a78e475849db488fad7083d690cf5, type: 2}
+  terrainTypes:
+  - name: Deep Water
+    height: 0.25
+    colour: {r: 0, g: 0.14321916, b: 0.8962264, a: 0}
+  - name: Water
+    height: 0.4
+    colour: {r: 0.17421682, g: 0.45707715, b: 0.8207547, a: 0}
+  - name: Sand
+    height: 0.45
+    colour: {r: 0.8773585, g: 0.8494082, b: 0.45109472, a: 0}
+  - name: Grass
+    height: 0.5
+    colour: {r: 0.029637493, g: 0.4811321, b: 0, a: 0}
+  - name: Hills
+    height: 0.65
+    colour: {r: 0.013477746, g: 0.6132076, b: 0, a: 0}
+  - name: Mountains
+    height: 0.8
+    colour: {r: 0.3301887, g: 0.20118682, b: 0.13861695, a: 0}
+  - name: Peak
+    height: 0.9
+    colour: {r: 0.5377358, g: 0.31175217, b: 0.23589353, a: 0}
+  - name: Snow
+    height: 1
+    colour: {r: 1, g: 1, b: 1, a: 0}
+  curve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  m_scale: 10
+  m_lacunarity: 0.5
+  m_persistence: 1
+  m_octaves: 5
+--- !u!1 &922253647
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 922253648}
+  m_Layer: 0
+  m_Name: MikeTheMiner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &922253648
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 922253647}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 549678090}
+  - {fileID: 1506880940}
+  - {fileID: 1284175918}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1284175914
@@ -607,12 +709,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1284175914}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: -1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 922253648}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1506880936
 GameObject:
@@ -715,12 +817,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1506880936}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: -2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 922253648}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
@@ -728,6 +830,4 @@ SceneRoots:
   m_Roots:
   - {fileID: 122879837}
   - {fileID: 478285643}
-  - {fileID: 549678090}
-  - {fileID: 1506880940}
-  - {fileID: 1284175918}
+  - {fileID: 922253648}

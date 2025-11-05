@@ -8,7 +8,7 @@ using UnityEngine;
 public class MikeTheMiner : MonoBehaviour
 {
 
-    [SerializeField] int m_sips;
+    [SerializeField] int m_steps;
     [SerializeField] float m_gridXSize;
     [SerializeField] float m_gridZSize;
     [SerializeField] int seed;
@@ -19,8 +19,9 @@ public class MikeTheMiner : MonoBehaviour
 
     System.Random m_random;
 
-
     public List<Vector3> FloorPositions = new List<Vector3>();
+
+    public Stack<Vector3> IntersectPositions = new Stack<Vector3>();
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -32,13 +33,16 @@ public class MikeTheMiner : MonoBehaviour
 
         Vector3 mikeStart = m_mikeTheMiner.transform.position;
         FloorPositions.Add(mikeStart);
+        for (int i = 0; i < 4; i++) { IntersectPositions.Push(mikeStart); } //Places 4 positions into the stack to pull, meaning at the very least it will create a path for each direction.
+        
         Quaternion quaternion = Quaternion.identity;
-        for (int i = 0; i < 4; i++) 
+        while (IntersectPositions.Count > 0)
         {
+            mikeStart = IntersectPositions.Pop();
             m_mikeTheMiner.transform.position = mikeStart;
-            Path(m_sips, gridXBoundary, gridZBoundary);
+            Path(m_steps, gridXBoundary, gridZBoundary);
         }
-        Draw(gridXBoundary, gridZBoundary, quaternion);
+        Draw((gridXBoundary+1), (gridZBoundary+1), quaternion);
     }
 
     // Update is called once per frame
@@ -47,20 +51,18 @@ public class MikeTheMiner : MonoBehaviour
         
     }
 
-    bool CheckValid(Vector3 currentPos, bool isX, int direction) 
+    bool CheckValid(Vector3 currentPos, bool isX, int axis) 
     {
-        if (isX) { currentPos.x += direction; }
-        else {  currentPos.z += direction; }
-            Vector3 LeftNeighbour = currentPos;
+        if (isX) { currentPos.x += axis; }
+        else {  currentPos.z += axis; }
+        Vector3 LeftNeighbour = currentPos;
         Vector3 RightNeighbour = currentPos;
-        Vector3 ForwardRightNeighbour = currentPos;
-        Vector3 ForwardLeftNeighbour = currentPos;
         Vector3 LookAhead = currentPos;
         if (isX)
         {
             LeftNeighbour.z -= 1;
             RightNeighbour.z += 1;
-            LookAhead.x += direction;
+            LookAhead.x += axis;
             if (!FloorPositions.Contains(LeftNeighbour) && !FloorPositions.Contains(RightNeighbour) && !FloorPositions.Contains(LookAhead) && !FloorPositions.Contains(currentPos)) { return true; }
             else { return false; }
         }
@@ -68,7 +70,7 @@ public class MikeTheMiner : MonoBehaviour
         {
             LeftNeighbour.x -= 1;
             RightNeighbour.x += 1;
-            LookAhead.z += direction;
+            LookAhead.z += axis;
             if (!FloorPositions.Contains(LeftNeighbour) && !FloorPositions.Contains(RightNeighbour) && !FloorPositions.Contains(LookAhead) && !FloorPositions.Contains(currentPos)) { return true; }
             else { return false; }
         }
@@ -77,64 +79,68 @@ public class MikeTheMiner : MonoBehaviour
 
     void Path(int steps, int gridXBoundary, int gridZBoundary) 
     {
-        int movedir = 0;
-
+       
+        //VECTORS
         Vector3 mikePos = m_mikeTheMiner.transform.position;
-
+        Vector3 chosenMikePos = mikePos;
+        //BOOLS
         bool moved = false;
         bool isX = false;
+        //INTS
+        int movedir = 0;
         int safetyCounter = 0;
-        int direction = 0;
+        int axis = 0;
 
-        while (m_sips > 0)
+        while (steps > 0)
         {
             movedir = m_random.Next(0, 4);
+
             switch (movedir)
             {
                 case 0:
-                    direction = 1;
-                    if ((mikePos.x + (2 * direction)) <= gridXBoundary)
+                    axis = 1;
+                    if (Mathf.Abs(mikePos.x) + 2 <= gridXBoundary)
                     {
                         isX = true;
-                        mikePos.x += direction;
-                        if (CheckValid(mikePos, isX, direction))
-                        { m_sips -= 1; moved = true; }
-                        else { mikePos.x -= direction; moved = false; }
+                        mikePos.x += axis;
+                        if (CheckValid(mikePos, isX, axis))
+                        { steps -= 1; moved = true; }
+                        else { mikePos.x -= axis; moved = false; }
                     }
                     break;
                 case 1:
-                    direction = -1;
-                    if ((mikePos.x + (2 * direction)) >= -gridXBoundary)
+                    axis = -1;
+                    if (Mathf.Abs(mikePos.x) + 2 <= gridXBoundary)
                     {
                         isX = true;
-                        mikePos.x += direction;
-                        if (CheckValid(mikePos, isX, direction))
-                        { m_sips -= 1; moved = true; }
-                        else { mikePos.x -= direction; moved = false; }
+                        mikePos.x += axis;
+                        if (CheckValid(mikePos, isX, axis))
+                        { steps -= 1; moved = true; }
+                        else { mikePos.x -= axis; moved = false; }
                     }
                     break;
                 case 2:
-                    direction = 1;
-                    if ((mikePos.z + (2 * direction)) <= gridZBoundary)
+                    axis = 1;
+                    if (Mathf.Abs(mikePos.z) + 2 <= gridZBoundary)
                     {
 
                         isX = false;
-                        mikePos.z += direction;
-                        if (CheckValid(mikePos, isX, direction))
-                        { m_sips -= 1; moved = true; }
+                        mikePos.z += axis;
+                        if (CheckValid(mikePos, isX, axis))
+                        { steps -= 1; moved = true; }
                         else
-                        { mikePos.z -= direction; moved = false; }
+                        { mikePos.z -= axis; moved = false; }
                     }
                     break;
                 case 3:
-                    direction = -1;
-                    if ((mikePos.z + (2 * direction)) >= -gridZBoundary)
+                    axis = -1;
+                    if (Mathf.Abs(mikePos.z) + 2 <= gridZBoundary)
                     {
                         isX = false;
-                        mikePos.z += direction;
-                        if (CheckValid(mikePos, isX, direction))
-                        { m_sips -= 1; moved = true; }
-                        else { mikePos.z -= direction; moved = false; ; }
+                        mikePos.z += axis;
+                        if (CheckValid(mikePos, isX, axis))
+                        { steps -= 1; moved = true; }
+                        else { mikePos.z -= axis; moved = false; ; }
                     }
                     break;
                 default:
@@ -143,16 +149,17 @@ public class MikeTheMiner : MonoBehaviour
             if (moved)
             {
                 FloorPositions.Add(mikePos);
-                if (isX) { mikePos.x += direction; }
-                else { mikePos.z += direction; }
+                if (isX) { mikePos.x += axis; }
+                else { mikePos.z += axis; }
                 FloorPositions.Add(mikePos);
                 m_mikeTheMiner.transform.position = mikePos;
+                for (int i = 0; i < 3; i++) { IntersectPositions.Push(mikePos); }
                 safetyCounter = 0;
             }
             else
             {
                 safetyCounter++;
-                if (safetyCounter >= 10000) { break; }
+                if (safetyCounter >= 100) { break; }
             }
 
         }
