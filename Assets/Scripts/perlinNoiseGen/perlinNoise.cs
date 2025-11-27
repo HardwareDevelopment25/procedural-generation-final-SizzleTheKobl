@@ -1,4 +1,4 @@
-using Unity.Mathematics;
+using System.Security.Cryptography;
 using UnityEngine;
 
 public static class perlinNoise
@@ -46,5 +46,21 @@ public static class perlinNoise
             }
         }
         return noiseMap;
+    }
+
+    public static float[,] FalloffMap(int imageSize, AnimationCurve curve)
+    {
+        float[,] falloffMap = new float[imageSize, imageSize];
+        for (int y = 0; y < (imageSize); y++)
+        {
+            for (int x = 0; x < (imageSize); x++)
+            {
+                float fallX = x / (float)imageSize * 2 - 1;
+                float fallY = y / (float)imageSize * 2 - 1;
+                float value = (Mathf.Max(Mathf.Abs(fallX), Mathf.Abs(fallY)));
+                falloffMap[x, y] = curve.Evaluate(value);
+            }
+        }
+        return falloffMap;
     }
 }

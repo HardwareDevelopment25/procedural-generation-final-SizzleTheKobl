@@ -77,9 +77,9 @@ public class BSPDungeon : MonoBehaviour
         
         ConnectTree(rootNode);
         RasterizeGrid();
-        CreateWalls();
+        //CreateWalls();
         InstantiateGrid(m_tileGrid);
-        InstantiateWalls();
+        //InstantiateWalls();
         
     }
 
@@ -142,44 +142,7 @@ public class BSPDungeon : MonoBehaviour
 
     void InstantiateWalls() 
     { 
-        Vector3 Position = Vector3.zero;
-        foreach (Wall wall in m_northWalls) 
-        {
-            float xPos = (float)wall.m_length / 2 + wall.m_start.x;
-            Position = new Vector3(xPos, 1, wall.m_start.y-1);
-            GameObject newWall = m_floorPrefab;
-            newWall.transform.localScale = new Vector3(wall.m_length, 1, 1);
-            Instantiate(newWall, Position, Quaternion.identity, m_wallParent.transform);
-        }
 
-        foreach (Wall wall in m_eastWalls) 
-        {
-
-            float yPos = (float)wall.m_length / 2 + wall.m_start.y;
-            Position = new Vector3(wall.m_start.x + 1, 1, yPos);
-            GameObject newWall = m_floorPrefab;
-            newWall.transform.localScale = new Vector3(1, 1, wall.m_length);
-            Instantiate(newWall, Position, Quaternion.identity, m_wallParent.transform);
-        }
-
-        foreach (Wall wall in m_southWalls) 
-        {
-
-            float xPos = (float)wall.m_length / 2 + wall.m_start.x;
-            Position = new Vector3(xPos, 1, wall.m_start.y + 1);
-            GameObject newWall = m_floorPrefab;
-            newWall.transform.localScale = new Vector3(wall.m_length, 1, 1);
-            Instantiate(newWall, Position, Quaternion.identity, m_wallParent.transform);
-        }
-
-        foreach (Wall wall in m_westWalls) 
-        {
-            float yPos = (float)wall.m_length / 2 + wall.m_start.y;
-            Position = new Vector3(wall.m_start.x - 1, 1, yPos);
-            GameObject newWall = m_floorPrefab;
-            newWall.transform.localScale = new Vector3(1, 1, wall.m_length);
-            Instantiate(newWall, Position, Quaternion.identity, m_wallParent.transform);
-        }
     }
 
     void SplitRecursive(Node node, int depth) 
@@ -313,109 +276,10 @@ public class BSPDungeon : MonoBehaviour
         }
     }
 
-    /*void CreateWalls() 
+    void CreateWalls() 
     {
-        for (int x = 0; x < m_mapSize.x; x++)
-        {
-            for (int y = 0; y < m_mapSize.y; y++)
-            {
-                Vector2 edgeStart = new Vector2(x, y); //Shouldn't Change
-                Vector2 edgeEnd = new Vector2(0, 0);
-                Vector2 prevLoc = new Vector2(0, 0);
-                Vector2 newLoc = new Vector2(x, y);
-                if (!(m_edgeLocations.Contains(edgeStart)))
-                {
-                    bool[] neighbours = CheckNeighbours(edgeStart);
-                    if (neighbours[0] == true)
-                    {
-                        newLoc = new Vector2(x, y);
-                        while (m_tileGrid[(int)newLoc.x, (int)newLoc.y] == 1)
-                        {
-                            prevLoc = newLoc; //Previous Location
-                            newLoc.x += 1;
-
-                            neighbours = CheckNeighbours(newLoc);
-                            if (neighbours[0] == false)
-                            {
-                                edgeEnd = prevLoc;
-                                Wall newEdge = new Wall();
-                                newEdge.SetParams(edgeStart, edgeEnd, 'H');
-                                if (!m_northWalls.Contains(newEdge)) { m_northWalls.Add(newEdge); }
-                                
-                            }
-                            else { m_edgeLocations.Add(prevLoc); }
-                        } 
-                    }
-                    if (neighbours[1] == true)
-                    {
-
-                        newLoc = new Vector2(x, y);
-                        while (m_tileGrid[(int)newLoc.x, (int)newLoc.y] == 1)
-                        {
-                            prevLoc = newLoc; //Previous Location
-                            newLoc.x += 1;
-                            neighbours = CheckNeighbours(newLoc);
-                            if (neighbours[1] == false)
-                            {
-                                edgeEnd = prevLoc;
-                                Wall newEdge = new Wall();
-                                newEdge.SetParams(edgeStart, edgeEnd, 'H');
-                                if (!m_southWalls.Contains(newEdge)) { m_southWalls.Add(newEdge); }
-                            }
-                            else 
-                            {
-                                m_edgeLocations.Add(newLoc); 
-                            }
-                        } 
-                    }
-                    if (neighbours[2] == true)
-                    {
-
-                        newLoc = new Vector2(x, y);
-                        while (m_tileGrid[(int)newLoc.x, (int)newLoc.y] == 1)
-                        {
-                            prevLoc = newLoc; //Previous Location
-                            newLoc.y += 1;
-                            neighbours = CheckNeighbours(newLoc);
-                            if (neighbours[2] == false) 
-                            { 
-                                edgeEnd = prevLoc; 
-                                Wall newEdge = new Wall();
-                                newEdge.SetParams(edgeStart, edgeEnd, 'V');
-                                if (!m_westWalls.Contains(newEdge)) { m_westWalls.Add(newEdge); }
-                            }
-                            else { m_edgeLocations.Add(prevLoc); }
-                        } 
-
-                    }
-                    if (neighbours[3] == true)
-                    {
-
-                        newLoc = new Vector2(x, y);
-                        while (m_tileGrid[(int)newLoc.x, (int)newLoc.y] == 1)
-                        {
-
-                            prevLoc = newLoc; //Previous Location
-                            newLoc.y += 1;
-                            neighbours = CheckNeighbours(newLoc);
-                            if (neighbours[3] == false)
-                            {
-                                edgeEnd = prevLoc;
-                                Wall newEdge = new Wall();
-                                newEdge.SetParams(edgeStart, edgeEnd, 'V');
-                                if (!m_eastWalls.Contains(newEdge)) { m_eastWalls.Add(newEdge); }
-
-                            }
-                            else { m_edgeLocations.Add(prevLoc); }
-
-                        } 
-
-                    }
-                }
-            }
-        }
-    
-    }*/
+        
+    }
 
     bool[] CheckNeighbours(Vector2 Location) 
     {

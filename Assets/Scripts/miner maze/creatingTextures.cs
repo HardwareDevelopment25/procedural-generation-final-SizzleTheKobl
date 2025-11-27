@@ -33,16 +33,16 @@ public class creatingTextures : MonoBehaviour
     }
 
     [System.Serializable]
-    public struct TerrainType 
+    public struct TerrainType
     {
         public string name;
         public float height;
         public Color colour;
     }
 
-    public void createPattern() 
+    public void createPattern()
     {
-        
+
         for (int y = 0; y < m_texture.height; y++)
         {
             for (int x = 0; x < m_texture.width; x++)
@@ -58,10 +58,10 @@ public class creatingTextures : MonoBehaviour
         m_texture.SetPixels(m_pixels);
         m_texture.Apply();
         m_material.mainTexture = m_texture;
-        
+
     }
 
-    public void createLayerTexture() 
+    public void createLayerTexture()
     {
         float[,] perlinResults = perlinNoise.CreatePerlinNoise(imageSize, imageSize, m_octaves, m_scale, m_lacunarity, m_persistence, m_random.Next(), new Vector2(0, 0));
         for (int y = 0; y < m_texture.height; y++)
@@ -75,26 +75,26 @@ public class creatingTextures : MonoBehaviour
         m_texture.SetPixels(m_pixels);
         m_texture.Apply();
         m_material.mainTexture = m_texture;
-     }
+    }
 
     public void createColourTexture()
     {
         float[,] falloffMap = FalloffMap();
-        Color TerrainColour = new Color (0, 0, 0);
+        Color terrainColour = new Color(0, 0, 0);
         float[,] perlinResults = perlinNoise.CreatePerlinNoise(imageSize, imageSize, m_octaves, m_scale, m_lacunarity, m_persistence, m_random.Next(), new Vector2(0, 0));
         for (int y = 0; y < m_texture.height; y++)
         {
             for (int x = 0; x < m_texture.width; x++)
             {
-                float indPixel = Mathf.Clamp(perlinResults[x,y] - falloffMap[x,y], 0, 1);
-                for (int type = 0; type < terrainTypes.Length; type++) 
+                float indPixel = Mathf.Clamp(perlinResults[x, y] - falloffMap[x, y], 0, 1);
+                for (int type = 0; type < terrainTypes.Length; type++)
                 {
                     if (indPixel >= terrainTypes[type].height)
                     {
-                        TerrainColour = terrainTypes[type].colour;
+                        terrainColour = terrainTypes[type].colour;
                     }
                 }
-                m_pixels[y * m_texture.width + x] = TerrainColour;
+                m_pixels[y * m_texture.width + x] = terrainColour;
             }
         }
         m_texture.SetPixels(m_pixels);
@@ -103,9 +103,9 @@ public class creatingTextures : MonoBehaviour
 
     }
 
-    public float[,] FalloffMap() 
+    public float[,] FalloffMap()
     {
-        float[,] falloffMap = new float[imageSize,imageSize];
+        float[,] falloffMap = new float[imageSize, imageSize];
         for (int y = 0; y < (imageSize); y++)
         {
             for (int x = 0; x < (imageSize); x++)
@@ -118,6 +118,4 @@ public class creatingTextures : MonoBehaviour
         }
         return falloffMap;
     }
-    
-    public static float Evaluate(float value, float a, float b) { return Mathf.Pow(value, a) / Mathf.Pow(value, a) + Mathf.Pow(b - value, a); }
 }

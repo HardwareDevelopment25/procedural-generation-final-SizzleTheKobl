@@ -148,7 +148,64 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 39c3a6a5c67affa4b873a51a4ee3da53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scale: 1
+  terrainTypes:
+  - name: Deep Water
+    height: 0
+    colour: {r: 0, g: 0, b: 0.36078432, a: 0}
+  - name: Water
+    height: 0.2
+    colour: {r: 0.07195621, g: 0.26092446, b: 0.7264151, a: 0}
+  - name: Shallow Water
+    height: 0.4
+    colour: {r: 0.055224285, g: 0.5252624, b: 0.6886792, a: 0}
+  - name: Sand
+    height: 0.45
+    colour: {r: 0.754717, g: 0.69606954, b: 0.52331793, a: 0}
+  - name: Grass
+    height: 0.5
+    colour: {r: 0, g: 0.5019608, b: 0, a: 0}
+  - name: Hills
+    height: 0.65
+    colour: {r: 0.010419034, g: 0.26415092, b: 0, a: 0}
+  - name: Stone
+    height: 0.8
+    colour: {r: 0.38679248, g: 0.38679248, b: 0.38679248, a: 0}
+  - name: Snow
+    height: 0.95
+    colour: {r: 1, g: 1, b: 1, a: 0}
+  m_material: {fileID: 2100000, guid: 06f4c7a10bf45fa46a277edcf7a8242a, type: 2}
+  levelOfDetail: 1
+  m_gridSize: 256
+  m_seed: 534
+  m_scale: 10
+  m_octave: 5
+  m_lacunarity: 1
+  m_persistance: 2
+  m_offset: {x: 0, y: 0}
+  m_animCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!4 &138139969
 Transform:
   m_ObjectHideFlags: 0
