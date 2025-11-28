@@ -515,8 +515,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_sphere: {fileID: 45150746}
-  amountOfCandidates: 2
-  totalSpheres: 500
+  amountOfCandidates: 6
+  totalSpheres: 5000
   points: []
 --- !u!4 &2022031536
 Transform:

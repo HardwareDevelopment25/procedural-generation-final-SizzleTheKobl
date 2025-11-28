@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,23 +7,43 @@ using UnityEngine;
 public class LSystems : MonoBehaviour
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
+    //Koch's Curve
+    //Axiom: F
+    //Law: F->F+F--F+F
+    //Angle: 60
+
+    //Koch's Snowflake
+    //Axiom: F--F--F
+    //Laws: Koch's Curve
+    //Angle: 60
+
+    //Dragon Curve
+    //Axiom: F
+    //Laws: F->F+G , G->F-G
+    //Angle: 90
+
+    //Barnsley Fern
+    //Axiom: -X
+    //Laws: X->F+[[X]-X]-F[-FX]+X , F->FF
+    //Angle: 25
 
     [SerializeField] string m_axiom = "F";
     [SerializeField] float m_angle = 60.0f;
     [SerializeField] int m_iterations = 5;
-    [SerializeField] public string[] m_laws;
+    [SerializeField] string[] m_laws;
 
     [SerializeField] LineRenderer m_lineRenderer;
     [SerializeField] GameObject m_turtle;
+    [SerializeField] GameObject m_cylinder;
 
-    float m_speed = 0.5f;
+    [SerializeField] float m_speed = 1f;
 
     private string currentString;
 
     [SerializeReference]
     private Dictionary<char, string> rules = new Dictionary<char, string>();
 
-    public Stack<Transform> m_transforms = new Stack<Transform>();
+    public Stack<TransformData> m_transforms = new Stack<TransformData>();
     public List<Vector3> m_positions = new List<Vector3>();
 
     private void Awake()
@@ -34,7 +55,7 @@ public class LSystems : MonoBehaviour
             rules.Add(l[0][0], l[1]);
         }
         GenerateLSystemString();
-        GenerateFractal(currentString);
+        StartCoroutine(GenerateFractal(currentString));
 
     }
 
@@ -53,44 +74,56 @@ public class LSystems : MonoBehaviour
         Debug.Log(currentString);
     }
 
-    void GenerateFractal(string currentString)
+    IEnumerator GenerateFractal(string currentString)
     {
-        Transform currPos = m_turtle.transform;
+        TransformData currPos;
         m_positions.Add(m_turtle.transform.position);
 
         foreach (char c in currentString)
         {
             switch (c)
             {
+                case 'X':
+                    //No movement
+                    break;
                 case 'F':
+                case 'G':
+                    Vector3 beginPos = m_turtle.transform.position;
                     m_turtle.transform.Translate(Vector3.up * m_speed);
-                    currPos = m_turtle.transform;
+                    Vector3 endPos = m_turtle.transform.position;
+                    Vector3 cylPos = (beginPos + endPos) / 2;
+                    Instantiate(m_cylinder, cylPos, m_turtle.transform.rotation, this.transform); //Highly inefficent, but, it is a good visualiser.
                     m_positions.Add(m_turtle.transform.position);
-                    
                     break;
                 case '[':
+                    currPos = new TransformData();
+                    currPos.pos = m_turtle.transform.position;
+                    currPos.rot = m_turtle.transform.rotation;
                     m_transforms.Push(currPos);
                     break;
                 case ']':
+                    currPos = new TransformData();
                     currPos = m_transforms.Pop();
-                    m_turtle.transform.position = currPos.position;
-                    m_turtle.transform.rotation = currPos.rotation;
+                    m_turtle.transform.position = currPos.pos;
+                    m_turtle.transform.rotation = currPos.rot;
                     break;
                 case '+':
                     m_turtle.transform.Rotate(Vector3.forward * m_angle);
-                    currPos = m_turtle.transform;
                     break;
                 case '-':
                     m_turtle.transform.Rotate(Vector3.forward * -m_angle);
-                    currPos = m_turtle.transform;
-
                     break;
             }
+
+            m_lineRenderer.positionCount = m_positions.Count;
+            m_lineRenderer.SetPositions(m_positions.ToArray());
+            yield return new WaitForSeconds(0f);
         }
-        m_lineRenderer.positionCount = m_positions.Count;
-        for (int i = 0; i < m_lineRenderer.positionCount; i++) 
-        {
-            m_lineRenderer.SetPosition(i, m_positions[i]);
-        }
+    }
+
+    public struct TransformData 
+    {
+        public Vector3 pos;
+        public Quaternion rot;
     }
 }

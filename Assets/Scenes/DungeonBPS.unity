@@ -180,10 +180,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_seed: 0
-  m_maxDepth: 4
+  m_maxDepth: 6
   m_minLeafSize: 10
   m_borderSize: 5
-  m_mapSize: {x: 80, y: 40}
+  m_mapSize: {x: 100, y: 100}
   m_minRoomSize: {x: 5, y: 5}
   m_maxRoomSize: {x: 12, y: 10}
   m_floorMaterial: {fileID: 0}

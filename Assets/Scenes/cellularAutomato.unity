@@ -222,7 +222,7 @@ Transform:
   m_GameObject: {fileID: 222972647}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.68976, y: 0, z: 1.03788}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -349,9 +349,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38cf55b9f3bf70242ad1a48e1515ddfe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_gridSize: 64
-  m_percFill: 0.5
-  m_seed: 0
+  m_gridSize: 128
+  m_percFill: 0.9
+  m_seed: 53
   m_iterations: 10
   m_material: {fileID: 2100000, guid: 69eb396a9ebc132489bf832d7c8c81ca, type: 2}
   m_grassPrefab: {fileID: 1394337369757223757, guid: 102f15997996c0a419781e0febc8ec36, type: 3}

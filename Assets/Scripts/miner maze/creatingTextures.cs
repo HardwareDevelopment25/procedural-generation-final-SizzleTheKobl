@@ -82,22 +82,26 @@ public class creatingTextures : MonoBehaviour
         float[,] falloffMap = FalloffMap();
         Color terrainColour = new Color(0, 0, 0);
         float[,] perlinResults = perlinNoise.CreatePerlinNoise(imageSize, imageSize, m_octaves, m_scale, m_lacunarity, m_persistence, m_random.Next(), new Vector2(0, 0));
-        for (int y = 0; y < m_texture.height; y++)
+        for (int y = 0; y < imageSize; y++)
         {
-            for (int x = 0; x < m_texture.width; x++)
+            for (int x = 0; x < imageSize; x++)
             {
                 float indPixel = Mathf.Clamp(perlinResults[x, y] - falloffMap[x, y], 0, 1);
                 for (int type = 0; type < terrainTypes.Length; type++)
                 {
                     if (indPixel >= terrainTypes[type].height)
                     {
+
                         terrainColour = terrainTypes[type].colour;
                     }
                 }
-                m_pixels[y * m_texture.width + x] = terrainColour;
+                m_pixels[y * imageSize + x] = terrainColour;
             }
         }
         m_texture.SetPixels(m_pixels);
+        //Debug.Log(m_pixels.Length);
+        //Debug.Log(imageSize * imageSize);
+        //Debug.Log($"{m_texture.width} {m_texture.height}");
         m_texture.Apply();
         m_material.mainTexture = m_texture;
 

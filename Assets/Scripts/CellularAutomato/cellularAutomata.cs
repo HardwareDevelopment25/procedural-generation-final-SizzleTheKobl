@@ -35,27 +35,24 @@ public class cellularAutomata : MonoBehaviour
         {
             for (int y = 0; y < m_gridSize; y++)
             {
-
                 float randomNo = (float)m_random.NextDouble();
                 if (x == 0 || x == m_gridSize - 1) { randomNo = 0; }
                 if (y == 0 || y == m_gridSize - 1) { randomNo = 0; }
                 if (randomNo > m_percFill) { m_grid[x, y] = 1; }
                 else { m_grid[x, y] = 0; }
-
-
             }
         }
         Draw();
-        for (int i = 0; i < (m_iterations + 1); i++)
-        {
-            CaveGame();
-        }
+        //for (int i = 0; i < (m_iterations + 1); i++)
+        //{
+        //    CaveGame();
+        //}
 
         Draw();
 
         //CreateWorld();
-        MarchingSquares();
-        //StartCoroutine(CellularAutomata());
+        //MarchingSquares();
+        StartCoroutine(CellularAutomata());
 
 
     }
@@ -63,6 +60,7 @@ public class cellularAutomata : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
     }
 
     private void Draw()
@@ -117,16 +115,10 @@ public class cellularAutomata : MonoBehaviour
         {
             for (int y = 1; y < m_gridSize - 1; y++)
             {
-
                 currentNeighbours = CheckNeighbour(x, y);
-                if (currentNeighbours < 2) { m_grid[x, y] = 1; } // Less than 2 neighbours dies.
-                else if (currentNeighbours > 3) { m_grid[x, y] = 1; } // 4 or more dies.
-                else if (currentNeighbours == 3) { m_grid[x, y] = 0; } // 2 or 3 lives/creates
-
-
-
-
-
+                if (currentNeighbours < 2) { m_grid[x, y] = 0; } // Less than 2 neighbours dies.
+                else if (currentNeighbours > 3) { m_grid[x, y] = 0; } // 4 or more dies.
+                else if (currentNeighbours == 3) { m_grid[x, y] = 1; } // 2 or 3 lives/creates
             }
         }
         Draw();
@@ -139,17 +131,10 @@ public class cellularAutomata : MonoBehaviour
         {
             for (int y = 0; y < m_gridSize; y++)
             {
-
                 currentNeighbours = CheckNeighbour(x, y);
                 if (currentNeighbours > 4) { m_grid[x, y] = 1; }
                 else if (currentNeighbours < 4) { m_grid[x, y] = 0; } // 
-
-
-
-
-
             }
-
         }
         Draw();
     }
@@ -158,10 +143,8 @@ public class cellularAutomata : MonoBehaviour
     {
         while (true)
         {
-
             WolframGameOfLife();
             yield return new WaitForSeconds(0.1f);
-
         }
     }
 
@@ -231,18 +214,15 @@ public class cellularAutomata : MonoBehaviour
     {
         int marchVal = 0;
         if (m_grid[x, y] > 0) { marchVal |= 4; }
-        if (m_grid[x + 1, y] >0) { marchVal |= 8; }
+        if (m_grid[x + 1, y] > 0) { marchVal |= 8; }
         if (m_grid[x, y + 1] > 0) { marchVal |= 2; }
         if (m_grid[x + 1, y + 1] > 0) { marchVal |= 1; }
-
-
         return marchVal;
     }
 
     void PlaceCell(int x, int y, int marchVal)
     {
         Vector3 gridPos = new Vector3(x, 0, y);
-        
         Texture2D texture = new Texture2D(32, 32);
         var pixels = m_sprites[marchVal].texture.GetPixels((int)m_sprites[marchVal].textureRect.x, (int)m_sprites[marchVal].textureRect.y, 32, 32);
         texture.SetPixels(pixels);

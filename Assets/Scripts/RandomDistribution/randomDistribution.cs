@@ -49,7 +49,7 @@ public class randomDistribution : MonoBehaviour
             points.Add(candidates[chosenCandidate]);
             Instantiate(m_sphere, candidates[chosenCandidate], Quaternion.identity, this.transform);
             totalSpheres--;
-            yield return new WaitForSeconds(0.01f);
+            yield return new WaitForSeconds(0.001f);
         }
     }
 
