@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
@@ -6,8 +7,12 @@ using System.Runtime.CompilerServices;
 using TreeEditor;
 using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.TerrainTools;
 using UnityEngine;
+using UnityEngine.Animations;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SocialPlatforms.Impl;
+using UnityEngine.UIElements;
 
 public class BSPDungeon : MonoBehaviour
 {
@@ -26,9 +31,9 @@ public class BSPDungeon : MonoBehaviour
     //Materials
     [Header("Prefab Requirements")]
     [SerializeField] Material m_floorMaterial;
-    [SerializeField] float m_tileSize = 1f;
     //Prefabs
     [SerializeField] GameObject m_floorPrefab;
+    [SerializeField] GameObject m_wallPrefab;
     [SerializeField] GameObject m_floorParent;
     [SerializeField] GameObject m_wallParent;
 
@@ -43,11 +48,8 @@ public class BSPDungeon : MonoBehaviour
     List<Node> m_leaves = new List<Node>();
     List<RectInt> m_rooms = new List<RectInt>();
     List<RectInt> m_corridors = new List<RectInt>();
-    List<Vector2> m_edgeLocations = new List<Vector2>();
-    List<Wall> m_northWalls = new List<Wall>();
-    List<Wall> m_southWalls = new List<Wall>();
-    List<Wall> m_westWalls = new List<Wall>();
-    List<Wall> m_eastWalls = new List<Wall>();
+    List<Edge> m_horizWalls = new List<Edge>();
+    List<Edge> m_vertWalls = new List<Edge>();
 
     private void Start()
     {
@@ -77,12 +79,14 @@ public class BSPDungeon : MonoBehaviour
         
         ConnectTree(rootNode);
         RasterizeGrid();
-        //CreateWalls();
+        DefineWalls();
         InstantiateGrid(m_tileGrid);
-        //InstantiateWalls();
+        InstantiateWalls();
         
     }
 
+    //All work to do with Instantiating/Rasterising the grid.
+    #region GridWork
     void ClearTiles() 
     {
         foreach (GameObject g in m_floorParent.transform)
@@ -95,7 +99,7 @@ public class BSPDungeon : MonoBehaviour
         }
         m_tileGrid = new int[m_mapSize.x, m_mapSize.y];
     }
-
+    
     void RasterizeGrid() 
     {
         foreach (RectInt room in m_rooms)
@@ -135,16 +139,57 @@ public class BSPDungeon : MonoBehaviour
                     newFloor.transform.localScale = new Vector3(1, 1, 1);
                     Instantiate(m_floorPrefab, position, Quaternion.identity, m_floorParent.transform);
                 }
-                    
+            }
+        }
+    }
+    #endregion
+    void InstantiateWalls()
+    {
+        Vector3 placePos = Vector3.zero;
+        GameObject newWall = m_wallPrefab;
+        foreach (Edge wall in m_horizWalls) 
+        {
+
+            placePos = new Vector3((wall.m_start.x + (wall.m_length / 2)), 1, (wall.m_start.y));
+            newWall.transform.localScale = new Vector3(wall.m_length + 1, 1, 1);
+            if (wall.m_corridor)
+            {
+                placePos.z -= 1;
+                Instantiate(newWall, placePos, Quaternion.identity, m_wallParent.transform);
+
+                placePos.z += 2;
+                Instantiate(newWall, placePos, Quaternion.identity, m_wallParent.transform);
+            }
+            else 
+            {
+                placePos.z += wall.m_axis;
+                Instantiate(newWall, placePos, Quaternion.identity, m_wallParent.transform);
+            }
+        }
+        foreach (Edge wall in m_vertWalls)
+        {
+
+            placePos = new Vector3((wall.m_start.x), 1, (wall.m_start.y + (wall.m_length / 2)));
+            newWall.transform.localScale = new Vector3(1, 1, wall.m_length + 1);
+            if (wall.m_corridor)
+            {
+                placePos.x -= 1;
+                Instantiate(newWall, placePos, Quaternion.identity, m_wallParent.transform);
+
+                placePos.x += 2;
+                Instantiate(newWall, placePos, Quaternion.identity, m_wallParent.transform);
+            }
+            else
+            {
+
+                placePos.x += wall.m_axis;
+                Instantiate(newWall, placePos, Quaternion.identity, m_wallParent.transform);
             }
         }
     }
 
-    void InstantiateWalls() 
-    { 
-
-    }
-
+    //General BSP algorithm, including getting leaves, creating rooms and connecting the tree.
+    #region BSPLeaves and Rooms
     void SplitRecursive(Node node, int depth) 
     {
         int splitLine;
@@ -227,6 +272,11 @@ public class BSPDungeon : MonoBehaviour
         return new RectInt(roomX, roomY, roomWidth, roomHeight);
     }
 
+    Vector2Int FindCenter(RectInt Room)
+    {
+        return new Vector2Int(Mathf.RoundToInt(Room.center.x), Mathf.RoundToInt(Room.center.y));
+    }
+
     void ConnectTree(Node node)
     {
         if (node == null || node.IsLeaf())
@@ -256,7 +306,6 @@ public class BSPDungeon : MonoBehaviour
 
     void CreateCorridor(Vector2Int from, Vector2Int to) 
     {
-        Debug.Log(from + " " + to);
         int corridorWidth = 1;
         if (from.y == to.y) 
         {
@@ -275,35 +324,157 @@ public class BSPDungeon : MonoBehaviour
             return;
         }
     }
+    #endregion 
 
-    void CreateWalls() 
+    #region Walls
+    void DefineWalls() 
+    {
+        Edge newEdge;
+        bool[] neighbours = new bool[4];
+        bool newWall = false;
+        Vector2Int currentLocation = Vector2Int.zero;
+        for (int x = 0; x < m_mapSize.x; x++)
+        {
+            for (int y = 0; y < m_mapSize.y; y++)
+            {
+                newEdge = new Edge();
+                currentLocation.x = x;
+                currentLocation.y = y;
+                neighbours = CheckNeighbours(currentLocation);
+                if (m_tileGrid[x, y] == 1 && ((neighbours[0] ^ neighbours[1]) || (neighbours[0] && neighbours[1]))) //IF grid is 1, and either only 1 or both are empty.
+                {
+                    if (m_horizWalls.Count < 1) 
+                    {
+                        m_horizWalls.Add(CreateWall(newEdge, currentLocation, neighbours, false));
+                    } //If no walls, add wall. This will be added to
+                    else
+                    {
+                        for (int i = 0; i < m_horizWalls.Count; i++)
+                        {
+                            if (currentLocation.y == m_horizWalls[i].m_start.y && currentLocation.x == (m_horizWalls[i].m_end.x + 1))
+                            {
+                                if ((!m_horizWalls[i].m_corridor) & (neighbours[0] & neighbours[1])) //If not a corridor and goes into a corridor, break to make a corridor instead.
+                                {
+                                    newWall = true; 
+                                    break;
+                                }
+                                else if ((m_horizWalls[i].m_corridor) & (neighbours[0] ^ neighbours[1])) //If a corridor, and goes out of a corridor, make a new wall instead.
+                                {
+                                    newWall = true;
+                                    break;
+                                }
+                                else
+                                {
+                                    newEdge = m_horizWalls[i];
+                                    newEdge.m_length += 1;
+                                    newEdge.m_end = currentLocation;
+                                    m_horizWalls[i] = newEdge;
+                                    newWall = false;
+                                    break;
+                                }
+                            }
+                            else 
+                            {
+                                newWall = true;
+                            }
+                        }
+                        if (newWall) 
+                        {
+                            m_horizWalls.Add(CreateWall(newEdge, currentLocation, neighbours, false));
+                        }
+
+                    }
+                }
+                if (m_tileGrid[x,y] == 1 && ((neighbours[2] ^ neighbours[3]) || (neighbours[2] && neighbours[3]))) 
+                {
+                    if (m_vertWalls.Count < 1)
+                    {
+                        m_vertWalls.Add(CreateWall(newEdge, currentLocation, neighbours, true));
+                    } //If no walls, add wall. This will be added to
+                    else
+                    {
+                        for (int i = 0; i < m_vertWalls.Count; i++)
+                        {
+                            if (currentLocation.x == m_vertWalls[i].m_start.x && currentLocation.y == (m_vertWalls[i].m_end.y + 1))
+                            {
+                                if ((!m_vertWalls[i].m_corridor) & (neighbours[2] & neighbours[3])) //If not a corridor and goes into a corridor, break to make a corridor instead.
+                                { 
+                                    newWall = true; break; 
+                                }
+                                else if ((m_vertWalls[i].m_corridor) & (neighbours[2] ^ neighbours[3]))
+                                {
+                                    newWall = true;
+                                    break;
+                                }
+                                else
+                                {
+                                    newEdge = m_vertWalls[i];
+                                    newEdge.m_length += 1;
+                                    newEdge.m_end = currentLocation;
+                                    m_vertWalls[i] = newEdge;
+                                    newWall = false;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                newWall = true;
+                            }
+                        }
+                        if (newWall)
+                        {
+                            m_vertWalls.Add(CreateWall(newEdge, currentLocation, neighbours, true));
+                        }
+
+                    }
+                }
+            }
+        }
+    }
+    Edge CreateWall(Edge newEdge, Vector2Int currentLocation, bool[] neighbours, bool isVert) //Common, repeated code.
     {
         
-    }
-
-    bool[] CheckNeighbours(Vector2 Location) 
-    {
-        int x = (int)Location.x;
-        int y = (int)Location.y;
-        bool northEmpty = false, southEmpty = false, westEmpty = false, eastEmpty = false;
-        if (m_mapSize.y-1 > y && y > 0 && m_mapSize.x-1 > x && x > 0 && m_tileGrid[x, y] == 1) 
+        int index = 0;
+        if (isVert) { index = 2; }
+        Debug.Log($"Wall at {currentLocation} has {neighbours[index]} on North/West, and {neighbours[index]} on South/East");
+        newEdge.m_start = currentLocation;
+        newEdge.m_end = currentLocation;
+        newEdge.m_length = 0;
+        if ((neighbours[index] & !neighbours[index + 1]))
         {
-            if (m_tileGrid[x, y - 1] == 0) { northEmpty = true; }
-            if (m_tileGrid[x, y + 1] == 0) { southEmpty = true; }
-            if (m_tileGrid[x - 1, y] == 0) { westEmpty = true; }
-            if (m_tileGrid[x + 1, y] == 0) { eastEmpty = true; }
+            newEdge.m_axis = -1f;
+            newEdge.m_corridor = false;
+        }
+        else if ((!neighbours[index] & neighbours[index + 1]))
+        {
+            newEdge.m_axis = 1f;
+            newEdge.m_corridor = false;
+        }
+        else if ((neighbours[index] & neighbours[index + 1]))
+        {
+            newEdge.m_axis = 0f;
+            newEdge.m_corridor = true;
+            Debug.Log($"Wall at {currentLocation} is a corridor.");
+        }
+        return newEdge;
+    } 
+    bool[] CheckNeighbours(Vector2Int Location) 
+    {
+        bool northEmpty = false, southEmpty = false, westEmpty = false, eastEmpty = false;
+        if (m_mapSize.y > Location.y && Location.y >= 0 && m_mapSize.x > Location.x && Location.x >= 0) 
+        {
+            if (Location.y - 1 < 0) { northEmpty = true; }
+            else if (m_tileGrid[Location.x, Location.y - 1] == 0) { northEmpty = true; }
+            if (Location.y + 1 >= m_mapSize.y) { southEmpty = true; }
+            else if (m_tileGrid[Location.x, Location.y + 1] == 0) { southEmpty = true; }
+            if (Location.x - 1 < 0) { westEmpty = true; }
+            else if (m_tileGrid[Location.x - 1, Location.y] == 0) { westEmpty = true; }
+            if (Location.x + 1 >= m_mapSize.x) { eastEmpty = true; }
+            else if (m_tileGrid[Location.x + 1, Location.y] == 0) { eastEmpty = true; }
         }
         return new bool[4] { northEmpty, southEmpty, westEmpty, eastEmpty };
     }
-
-    
-
-
-
-    Vector2Int FindCenter(RectInt Room) 
-    { 
-        return new Vector2Int(Mathf.RoundToInt(Room.center.x), Mathf.RoundToInt(Room.center.y));
-    }
+    #endregion
 }
 
 [System.Serializable]
@@ -317,7 +488,6 @@ class Node
     { 
         m_rect = rect;
     }
-
     
     //GETTERS
     public RectInt GetRect() { return m_rect; }
@@ -368,29 +538,11 @@ class Node
 }
 
 [System.Serializable]
-public struct Wall 
+public struct Edge 
 {
     public Vector2 m_start;
-    Vector2 m_end;
-    public char m_orientation;
-    public int m_length;
-
-    public void SetParams(Vector2 start, Vector2 end, char orientation) 
-    { 
-        m_start = start;
-        m_end = end;
-        m_orientation = orientation;
-        switch (orientation) 
-        {
-            case 'V':
-                m_length = (int)(end.y - start.y);
-                break;
-            case 'H':
-                m_length = (int)(end.x - start.x);
-                break;
-            default:
-                Debug.Log("Invalid Orientation.");
-                break;
-        }
-    }
+    public Vector2 m_end;
+    public float m_length;
+    public bool m_corridor;
+    public float m_axis;
 }

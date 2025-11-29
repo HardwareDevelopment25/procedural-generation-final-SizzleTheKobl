@@ -182,13 +182,13 @@ MonoBehaviour:
   m_seed: 0
   m_maxDepth: 6
   m_minLeafSize: 10
-  m_borderSize: 5
-  m_mapSize: {x: 100, y: 100}
+  m_borderSize: 2
+  m_mapSize: {x: 40, y: 40}
   m_minRoomSize: {x: 5, y: 5}
   m_maxRoomSize: {x: 12, y: 10}
   m_floorMaterial: {fileID: 0}
-  m_tileSize: 1
   m_floorPrefab: {fileID: 3856996498159993587, guid: 1f3820b6fed872946898ab20f4b8bd40, type: 3}
+  m_wallPrefab: {fileID: 3856996498159993587, guid: 9334bfa194d9db34ca53388d2c9f4bc5, type: 3}
   m_floorParent: {fileID: 569570151}
   m_wallParent: {fileID: 33598168}
 --- !u!4 &146981818
@@ -354,7 +354,7 @@ Transform:
   m_GameObject: {fileID: 569570151}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 62.98163, y: 0, z: 68.97925}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

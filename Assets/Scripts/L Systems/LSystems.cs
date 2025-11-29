@@ -6,7 +6,6 @@ using UnityEngine;
 
 public class LSystems : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     //Koch's Curve
     //Axiom: F
     //Law: F->F+F--F+F
@@ -27,13 +26,13 @@ public class LSystems : MonoBehaviour
     //Laws: X->F+[[X]-X]-F[-FX]+X , F->FF
     //Angle: 25
 
-    [SerializeField] string m_axiom = "F";
-    [SerializeField] float m_angle = 60.0f;
+    [SerializeField] string m_axiom = "F"; //Starting Word
+    [SerializeField] float m_angle = 60.0f; //Angle used in + and -
     [SerializeField] int m_iterations = 5;
     [SerializeField] string[] m_laws;
 
     [SerializeField] LineRenderer m_lineRenderer;
-    [SerializeField] GameObject m_turtle;
+    [SerializeField] GameObject m_turtle; //Used to draw the L-System
     [SerializeField] GameObject m_cylinder;
 
     [SerializeField] float m_speed = 1f;

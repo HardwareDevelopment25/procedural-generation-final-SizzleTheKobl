@@ -16,7 +16,6 @@ public class meshCreator : MonoBehaviour
     [SerializeField] Material m_material;
     
     //PerlinNoise
-    [SerializeField] int levelOfDetail = 1;
     [SerializeField] int m_gridSize = 64;
     [SerializeField] int m_seed = 0;
     [SerializeField] float m_scale = 10f;
