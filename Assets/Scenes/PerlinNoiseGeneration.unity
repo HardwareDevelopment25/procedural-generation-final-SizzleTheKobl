@@ -153,29 +153,28 @@ MonoBehaviour:
     height: 0
     colour: {r: 0, g: 0, b: 0.36078432, a: 0}
   - name: Water
-    height: 0.2
+    height: 0.1
     colour: {r: 0.07195621, g: 0.26092446, b: 0.7264151, a: 0}
   - name: Shallow Water
-    height: 0.4
+    height: 0.2
     colour: {r: 0.055224285, g: 0.5252624, b: 0.6886792, a: 0}
   - name: Sand
-    height: 0.45
+    height: 0.25
     colour: {r: 0.754717, g: 0.69606954, b: 0.52331793, a: 0}
   - name: Grass
-    height: 0.5
+    height: 0.3
     colour: {r: 0, g: 0.5019608, b: 0, a: 0}
   - name: Hills
-    height: 0.65
+    height: 0.5
     colour: {r: 0.010419034, g: 0.26415092, b: 0, a: 0}
   - name: Stone
-    height: 0.8
+    height: 0.7
     colour: {r: 0.38679248, g: 0.38679248, b: 0.38679248, a: 0}
   - name: Snow
     height: 0.95
     colour: {r: 1, g: 1, b: 1, a: 0}
   m_material: {fileID: 2100000, guid: 06f4c7a10bf45fa46a277edcf7a8242a, type: 2}
-  levelOfDetail: 1
-  m_gridSize: 256
+  m_gridSize: 96
   m_seed: 534
   m_scale: 10
   m_octave: 5
@@ -197,8 +196,8 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 1
       value: 1
-      inSlope: 2
-      outSlope: 2
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0

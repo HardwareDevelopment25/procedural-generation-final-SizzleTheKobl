@@ -23,6 +23,7 @@ public class meshCreator : MonoBehaviour
     [SerializeField] float m_lacunarity = 2;
     [SerializeField] float m_persistance = 1;
     [SerializeField] Vector2 m_offset;
+    [SerializeField] bool colourMap = true;
     //Falloff
     [SerializeField] AnimationCurve m_animCurve;
 
@@ -41,10 +42,13 @@ public class meshCreator : MonoBehaviour
             }
         }
         m_meshData = GenerateTerrain(combinedMap, m_scale);
+        Vector3[] verts = new Vector3[4] { new Vector3(0, 0, 0), new Vector3(0, 1, 0), new Vector3(1, 1, 0), new Vector3(1, 0, 0)  };
         m_meshFilter.mesh = m_meshData.CreateMesh();
         m_meshRender.material = m_material;
-        ColourMap(combinedMap);
-
+        if (colourMap)
+        {
+            ColourMap(combinedMap);
+        }
     }
     public void ColourMap(float[,] noiseMap)
     {

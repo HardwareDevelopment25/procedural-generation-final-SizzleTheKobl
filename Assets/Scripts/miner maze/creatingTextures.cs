@@ -12,6 +12,7 @@ public class creatingTextures : MonoBehaviour
     [SerializeField] Material m_material;
     [SerializeField] TerrainType[] terrainTypes;
     [SerializeField] AnimationCurve curve;
+    [SerializeField] int seed = 0;
     Texture2D m_texture;
     Color[] m_pixels;
     System.Random m_random = new System.Random();
@@ -22,9 +23,11 @@ public class creatingTextures : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        m_random = new System.Random(seed);
         m_texture = new Texture2D(imageSize, imageSize);
         m_pixels = new Color[imageSize * imageSize];
-        createColourTexture();
+        //createColourTexture();
+        createLayerTexture();
     }
 
     private void Update()

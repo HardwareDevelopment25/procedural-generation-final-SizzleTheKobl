@@ -43,16 +43,16 @@ public class cellularAutomata : MonoBehaviour
             }
         }
         Draw();
-        //for (int i = 0; i < (m_iterations + 1); i++)
-        //{
-        //    CaveGame();
-        //}
+        for (int i = 0; i < (m_iterations + 1); i++)
+        {
+            CaveGame();
+        }
 
         Draw();
 
-        //CreateWorld();
+        CreateWorld();
         //MarchingSquares();
-        StartCoroutine(CellularAutomata());
+        //StartCoroutine(CellularAutomata());
 
 
     }
@@ -133,7 +133,7 @@ public class cellularAutomata : MonoBehaviour
             {
                 currentNeighbours = CheckNeighbour(x, y);
                 if (currentNeighbours > 4) { m_grid[x, y] = 1; }
-                else if (currentNeighbours < 4) { m_grid[x, y] = 0; } // 
+                else if (currentNeighbours < 4) { m_grid[x, y] = 0; }
             }
         }
         Draw();
