@@ -252,10 +252,10 @@ public class BSPDungeon : MonoBehaviour
         int roomWidth, roomHeight, roomX, roomY;
         roomWidth = m_random.Next(m_minRoomSize.x, m_maxRoomSize.x); 
         roomHeight = m_random.Next(m_minRoomSize.y, m_maxRoomSize.y);
-        roomWidth = Mathf.Min(roomWidth, (leaf.width - 2));
-        roomHeight = Mathf.Min(roomHeight, (leaf.height - 2));
-        roomX = m_random.Next((leaf.x+1), (leaf.xMax - roomWidth));
-        roomY = m_random.Next((leaf.y+1), (leaf.yMax - roomHeight));
+        roomWidth = Mathf.Min(roomWidth, (leaf.width - 4));
+        roomHeight = Mathf.Min(roomHeight, (leaf.height - 4));
+        roomX = m_random.Next((leaf.x+2), (leaf.xMax - roomWidth));
+        roomY = m_random.Next((leaf.y+2), (leaf.yMax - roomHeight));
         return new RectInt(roomX, roomY, roomWidth, roomHeight);
     }
 
