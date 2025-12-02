@@ -12,6 +12,9 @@ public class UINavigation : MonoBehaviour
     [SerializeField] GameObject m_seedText;
     [SerializeField] GameObject m_XText;
     [SerializeField] GameObject m_YText;
+
+    [SerializeField] GameObject m_XBSPText;
+    [SerializeField] GameObject m_YBSPText;
     //EVENTS
     public UnityEvent OpenOptions;
     public UnityEvent CloseOptions;
@@ -54,6 +57,41 @@ public class UINavigation : MonoBehaviour
         m_YText.GetComponent<TextMeshProUGUI>().text = $"Y: {yInput.ToString()}";
     }
 
+    public void SetBSPXSize(Slider xSlider)
+    {
+        int xInput = (int)xSlider.value;
+        m_XBSPText.GetComponent<TextMeshProUGUI>().text = $"X: {xInput.ToString()}";
+    }
+
+    public void SetBSPYSize(Slider ySlider)
+    {
+        int yInput = (int)ySlider.value;
+        m_YBSPText.GetComponent<TextMeshProUGUI>().text = $"Y: {yInput.ToString()}";
+    }
+
+    public void BSPOptions(Toggle bspOpen) 
+    {
+        if (bspOpen.isOn)
+        {
+            OpenBSPOptions.Invoke();
+        }
+        else 
+        {
+            CloseBSPOptions.Invoke();
+        }
+    }
+
+    public void CaveOptions(Toggle caveOpen)
+    {
+        if (caveOpen.isOn)
+        {
+            OpenCaveOptions.Invoke();
+        }
+        else
+        {
+            CloseCaveOptions.Invoke();
+        }
+    }
 
     //EVENTS
     public void OptionsButton() 

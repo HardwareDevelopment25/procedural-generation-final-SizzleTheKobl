@@ -6,19 +6,16 @@ using UnityEngine.UI;
 
 public class MapGeneration : MonoBehaviour
 {
-    //Public, Serialized Variables
     //Ints
-    [SerializeField] int m_seed;
 
-    [Header("BSP Algorithm Variables")]
-    [SerializeField] int m_maxDepth = 4;
-    [SerializeField] int m_minLeafSize = 10;
-    [SerializeField] int m_borderSize = 5;
+    int m_maxDepth = 4;
+    int m_minLeafSize = 10;
+    int m_borderSize = 5;
     //Vectors
     [Header("BSP ,Sizes")]
-    [SerializeField] Vector2Int m_mapSize = new Vector2Int(100,100);
-    [SerializeField] Vector2Int m_minRoomSize = new Vector2Int(5, 5);
-    [SerializeField] Vector2Int m_maxRoomSize = new Vector2Int(20, 20);
+    Vector2Int m_mapSize = new Vector2Int(100,100);
+    Vector2Int m_minRoomSize = new Vector2Int(5, 5);
+    Vector2Int m_maxRoomSize = new Vector2Int(20, 20);
     //Materials
     [Header("Prefab Requirements")]
     [SerializeField] Material m_floorMaterial;
@@ -43,11 +40,47 @@ public class MapGeneration : MonoBehaviour
 
     private void Start()
     {
-        GameManager.m_random = new System.Random();
+
     }
 
-    void Generate() 
+    //SET
+    #region public functions for var setting
+    public void SetMapX(int x) 
+    { 
+        m_mapSize.x = x;
+    }
+    public void SetMapY(Slider ySlider) 
     {
+        m_mapSize.y = (int)ySlider.value;
+    }
+    public void SetMinLeaf(int leaf)
+    {
+        m_minLeafSize = leaf;
+    }
+    public void SetMinX(int x) 
+    { 
+        m_minRoomSize.x = x;
+    }
+    public void SetMaxX(int x) 
+    {
+        m_maxRoomSize.x = x;
+    }
+    public void SetMinY(int y) 
+    {
+        m_minRoomSize.y = y;
+    }
+    public void SetMaxY(int y) 
+    {
+        m_maxRoomSize.y = y;
+    }
+    public void SetMaxDepth(int depth) 
+    {
+        m_maxDepth = depth;
+    }
+    #endregion
+    public void Generate() 
+    {
+
         ClearTiles(); //Clear Previous Tiles
         RectInt root = new RectInt (m_borderSize, m_borderSize, Mathf.Max(1, (m_mapSize.x - (m_borderSize * 2))), Mathf.Max(1, (m_mapSize.y - (m_borderSize * 2))));
       
@@ -129,7 +162,7 @@ public class MapGeneration : MonoBehaviour
             }
         }
     }
-    #endregion
+    
     void InstantiateWalls()
     {
         Vector3 placePos = Vector3.zero;
@@ -175,6 +208,7 @@ public class MapGeneration : MonoBehaviour
         }
     }
 
+    #endregion
     //General BSP algorithm, including getting leaves, creating rooms and connecting the tree.
     #region BSPLeaves and Rooms
     void SplitRecursive(Node node, int depth) 
