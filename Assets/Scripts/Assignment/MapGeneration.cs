@@ -60,20 +60,24 @@ public class MapGeneration : MonoBehaviour
     {
         m_minLeafSize = (int)leafSlider.value;
     }
-    public void SetMinX(int x) 
-    { 
+    public void SetMinX(Slider xSlider) 
+    {
+        int x = (int)xSlider.value;
         m_minRoomSize.x = x;
     }
-    public void SetMaxX(int x) 
+    public void SetMaxX(Slider xSlider) 
     {
+        int x = (int)xSlider.value;
         m_maxRoomSize.x = x;
     }
-    public void SetMinY(int y) 
+    public void SetMinY(Slider ySlider) 
     {
+        int y = (int)ySlider.value;
         m_minRoomSize.y = y;
     }
-    public void SetMaxY(int y) 
+    public void SetMaxY(Slider ySlider) 
     {
+        int y = (int)ySlider.value;
         m_maxRoomSize.y = y;
     }
     public void SetMaxDepth(Slider depthSlider) 
