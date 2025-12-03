@@ -1,4 +1,7 @@
+using NUnit.Framework;
+using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -50,11 +53,12 @@ public class MapGeneration : MonoBehaviour
     public void SetMapY(Slider ySlider) 
     {
         m_dungeonSize.y = (int)ySlider.value;
+        Debug.Log(m_dungeonSize);
         m_caveBorder.y = (GameManager.m_mapY - m_dungeonSize.y);
     }
-    public void SetMinLeaf(int leaf)
+    public void SetMinLeaf(Slider leafSlider)
     {
-        m_minLeafSize = leaf;
+        m_minLeafSize = (int)leafSlider.value;
     }
     public void SetMinX(int x) 
     { 
@@ -72,9 +76,9 @@ public class MapGeneration : MonoBehaviour
     {
         m_maxRoomSize.y = y;
     }
-    public void SetMaxDepth(int depth) 
+    public void SetMaxDepth(Slider depthSlider) 
     {
-        m_maxDepth = depth;
+        m_maxDepth = (int)depthSlider.value;
     }
     #endregion
 
@@ -121,12 +125,17 @@ public class MapGeneration : MonoBehaviour
     #region GridWork
     void ClearTiles() 
     {
-        foreach (TileType tileType in m_tileTypes) 
+        m_leaves.Clear();
+        m_rooms.Clear();
+        m_corridors.Clear();
+        m_horizWalls.Clear();
+        m_vertWalls.Clear();
+        for (int i = 0; i < m_tileTypes.Length; i++)
         {
-            Transform parent = tileType.parent.transform;
-            foreach (GameObject g in parent) 
+            GameObject parent = m_tileTypes[i].parent;
+            foreach (Transform g in parent.transform) 
             {
-                Destroy(g);
+                Destroy(g.gameObject);
             }
         }
         m_tileGrid = new Tile[m_dungeonSize.x, m_dungeonSize.y];
@@ -137,7 +146,6 @@ public class MapGeneration : MonoBehaviour
                 m_tileGrid[x, y] = new Tile(m_tileTypes[0], Vector3.zero);
             }
         }
-
     }
     
     void RasterizeBSPGrid() 
@@ -161,7 +169,7 @@ public class MapGeneration : MonoBehaviour
             {
                 for (int y = corridor.yMin; y < corridor.yMax; y++)
                 {
-                    m_tileGrid[x, y] = new Tile(m_tileTypes[2], new Vector3 (x, 0, y));
+                    m_tileGrid[x, y] = new Tile(m_tileTypes[3], new Vector3 (x, 0, y));
                 }
             }
         }
@@ -169,7 +177,17 @@ public class MapGeneration : MonoBehaviour
 
     void RasterizeWalls() 
     { 
-    
+        foreach (Wall wall in m_horizWalls) 
+        {
+            if (CheckNeighbours(new Vector2Int((int)wall.start.x, (int)wall.start.y), "Dungeon Floor")[0] == true) 
+            { 
+                
+            }
+        }
+        foreach (Wall wall in m_vertWalls) 
+        { 
+            
+        }
     }
 
     void InstantiateGrid(Tile[,] grid) 
@@ -181,10 +199,17 @@ public class MapGeneration : MonoBehaviour
                 if (grid[x, y].GetID() != 0 ) 
                 {
                     Tile tile = m_tileGrid[x, y];
-                    Instantiate(tile.GetPrefab(), tile.GetPosition(), Quaternion.identity, tile.GetParent());
+                    Material material = tile.GetMaterial();
+                    GameObject newTile = Instantiate(tile.GetPrefab(), tile.GetPosition(), Quaternion.identity, tile.GetParent());
+                    newTile.GetComponent<Renderer>().material = material;
                 }
             }
         }
+    }
+
+    void MergeGrid() 
+    { 
+        
     }
     
     //void InstantiateWalls()
@@ -481,7 +506,6 @@ public class MapGeneration : MonoBehaviour
         
         int index = 0;
         if (isVert) { index = 2; }
-        Debug.Log($"Wall at {currentLocation} has {neighbours[index]} on North/West, and {neighbours[index]} on South/East");
         newEdge.start = currentLocation;
         newEdge.end = currentLocation;
         newEdge.length = 0;
@@ -499,7 +523,6 @@ public class MapGeneration : MonoBehaviour
         {
             newEdge.axis = 0f;
             newEdge.isCorridor = true;
-            Debug.Log($"Wall at {currentLocation} is a corridor.");
         }
         return newEdge;
     } 
@@ -511,13 +534,13 @@ public class MapGeneration : MonoBehaviour
         if (m_dungeonSize.y > Location.y && Location.y >= 0 && m_dungeonSize.x > Location.x && Location.x >= 0) 
         {
             if (Location.y - 1 < 0) { northEmpty = true; }
-            else if (m_tileGrid[Location.x, Location.y - 1].CheckFor(checkFor)) { northEmpty = true; }
+            else if (!m_tileGrid[Location.x, Location.y - 1].CheckFor(checkFor)) { northEmpty = true; }
             if (Location.y + 1 >= m_dungeonSize.y) { southEmpty = true; }
-            else if (m_tileGrid[Location.x, Location.y + 1].CheckFor(checkFor)) { southEmpty = true; }
+            else if (!m_tileGrid[Location.x, Location.y + 1].CheckFor(checkFor)) { southEmpty = true; }
             if (Location.x - 1 < 0) { westEmpty = true; }
-            else if (m_tileGrid[Location.x - 1, Location.y].CheckFor(checkFor)) { westEmpty = true; }
+            else if (!m_tileGrid[Location.x - 1, Location.y].CheckFor(checkFor)) { westEmpty = true; }
             if (Location.x + 1 >= m_dungeonSize.x) { eastEmpty = true; }
-            else if (m_tileGrid[Location.x + 1, Location.y].CheckFor(checkFor)) { eastEmpty = true; }
+            else if (!m_tileGrid[Location.x + 1, Location.y].CheckFor(checkFor)) { eastEmpty = true; }
         }
         return new bool[4] { northEmpty, southEmpty, westEmpty, eastEmpty };
     }

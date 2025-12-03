@@ -645,7 +645,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -150}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &148573845
@@ -1454,6 +1454,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1588673319}
+        m_TargetAssemblyTypeName: MapGeneration, Assembly-CSharp
+        m_MethodName: SetMapX
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 280980454}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.UI.Slider, UnityEngine.UI
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &286976835
 GameObject:
   m_ObjectHideFlags: 0
@@ -2151,7 +2163,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 85, y: 54.99994}
+  m_AnchoredPosition: {x: 85, y: 55}
   m_SizeDelta: {x: 300, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &403048101
@@ -3241,7 +3253,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 615996849}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -3649,7 +3661,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 85, y: 54.99994}
+  m_AnchoredPosition: {x: 85, y: 55}
   m_SizeDelta: {x: 300, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &702594279
@@ -3672,7 +3684,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Map Size:'
+  m_text: Max Depth
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -4132,9 +4144,9 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 512978401}
-        m_TargetAssemblyTypeName: UINavigation, Assembly-CSharp
-        m_MethodName: SetBSPXSize
+      - m_Target: {fileID: 1588673319}
+        m_TargetAssemblyTypeName: MapGeneration, Assembly-CSharp
+        m_MethodName: SetMinLeaf
         m_Mode: 2
         m_Arguments:
           m_ObjectArgument: {fileID: 759158545}
@@ -4483,8 +4495,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1906625751}
   m_HandleRect: {fileID: 1906625750}
   m_Direction: 2
-  m_Value: -0.027729707
-  m_Size: 0.93561614
+  m_Value: -0.0000035903033
+  m_Size: 0.9433333
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -4602,8 +4614,8 @@ RectTransform:
   - {fileID: 2139646769}
   - {fileID: 783514101}
   - {fileID: 805610689}
-  - {fileID: 140246092}
   - {fileID: 615996850}
+  - {fileID: 140246092}
   - {fileID: 305930638}
   m_Father: {fileID: 646720121}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -6517,7 +6529,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 17.471405}
+  m_AnchoredPosition: {x: 0, y: 17.00005}
   m_SizeDelta: {x: 0, y: 300}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &1281606997
@@ -8066,7 +8078,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -20, y: 85}
+  m_AnchoredPosition: {x: -20, y: 100}
   m_SizeDelta: {x: 200, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1606213466
@@ -8120,9 +8132,9 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 512978401}
-        m_TargetAssemblyTypeName: UINavigation, Assembly-CSharp
-        m_MethodName: SetBSPXSize
+      - m_Target: {fileID: 1588673319}
+        m_TargetAssemblyTypeName: MapGeneration, Assembly-CSharp
+        m_MethodName: SetMaxDepth
         m_Mode: 2
         m_Arguments:
           m_ObjectArgument: {fileID: 1606213466}
@@ -8727,6 +8739,18 @@ MonoBehaviour:
       - m_Target: {fileID: 512978401}
         m_TargetAssemblyTypeName: UINavigation, Assembly-CSharp
         m_MethodName: SetBSPYSize
+        m_Mode: 2
+        m_Arguments:
+          m_ObjectArgument: {fileID: 1690876829}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.UI.Slider, UnityEngine.UI
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 1588673319}
+        m_TargetAssemblyTypeName: MapGeneration, Assembly-CSharp
+        m_MethodName: SetMapY
         m_Mode: 2
         m_Arguments:
           m_ObjectArgument: {fileID: 1690876829}
