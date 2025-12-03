@@ -1484,8 +1484,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 844785421}
-  - {fileID: 730745253}
   - {fileID: 341015214}
+  - {fileID: 1778463077}
   m_Father: {fileID: 1588673320}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &305930637
@@ -1742,6 +1742,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 341015214}
+  - component: {fileID: 341015215}
   m_Layer: 0
   m_Name: Walls
   m_TagString: Untagged
@@ -1764,6 +1765,14 @@ Transform:
   m_Children: []
   m_Father: {fileID: 286976836}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &341015215
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 341015213}
+  m_Mesh: {fileID: 0}
 --- !u!1 &355264151
 GameObject:
   m_ObjectHideFlags: 0
@@ -2551,37 +2560,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 421343810}
   m_CullTransparentMesh: 1
---- !u!1 &476486054
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 476486055}
-  m_Layer: 0
-  m_Name: Ores
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &476486055
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 476486054}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1139544574}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &485033153
 GameObject:
   m_ObjectHideFlags: 0
@@ -3810,37 +3788,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!1 &730745252
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 730745253}
-  m_Layer: 0
-  m_Name: Corridors
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &730745253
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 730745252}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 286976836}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &740388634
 GameObject:
   m_ObjectHideFlags: 0
@@ -3923,7 +3870,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 740388637}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1588673319}
+        m_TargetAssemblyTypeName: MapGeneration, Assembly-CSharp
+        m_MethodName: GenerateMap
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 1
 --- !u!114 &740388637
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4524,8 +4483,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1906625751}
   m_HandleRect: {fileID: 1906625750}
   m_Direction: 2
-  m_Value: 0
-  m_Size: 0.942312
+  m_Value: -0.027729707
+  m_Size: 0.93561614
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -4805,8 +4764,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 844785421}
+  - component: {fileID: 844785422}
   m_Layer: 0
-  m_Name: Rooms
+  m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4827,6 +4787,14 @@ Transform:
   m_Children: []
   m_Father: {fileID: 286976836}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &844785422
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 844785420}
+  m_Mesh: {fileID: 0}
 --- !u!1 &882997833
 GameObject:
   m_ObjectHideFlags: 0
@@ -5914,7 +5882,6 @@ Transform:
   m_Children:
   - {fileID: 2109509168}
   - {fileID: 2046346049}
-  - {fileID: 476486055}
   m_Father: {fileID: 1588673320}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1168515540
@@ -6550,7 +6517,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 17.00003}
+  m_AnchoredPosition: {x: 0, y: 17.471405}
   m_SizeDelta: {x: 0, y: 300}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &1281606997
@@ -8020,11 +7987,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 405b05ab30cc7c04585e63afd53a2238, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_floorMaterial: {fileID: 0}
-  m_floorPrefab: {fileID: 0}
-  m_wallPrefab: {fileID: 0}
-  m_floorParent: {fileID: 0}
-  m_wallParent: {fileID: 0}
+  m_tileTypes:
+  - tileName: Air (Null)
+    prefab: {fileID: 349877410220497411, guid: 4d2022d330dec5942a22696e4414f932, type: 3}
+    parent: {fileID: 1778463076}
+    material: {fileID: 2100000, guid: f870e9b9335d57c44a15672dc6d9ef43, type: 2}
+    tileID: 0
+  - tileName: Cave Floor
+    prefab: {fileID: 349877410220497411, guid: 4d2022d330dec5942a22696e4414f932, type: 3}
+    parent: {fileID: 2046346048}
+    material: {fileID: 2100000, guid: f870e9b9335d57c44a15672dc6d9ef43, type: 2}
+    tileID: 1
+  - tileName: Cave Wall
+    prefab: {fileID: 349877410220497411, guid: 4d2022d330dec5942a22696e4414f932, type: 3}
+    parent: {fileID: 2109509167}
+    material: {fileID: 2100000, guid: e937198d734466f47a57c6d7578ec664, type: 2}
+    tileID: 2
+  - tileName: Dungeon Floor Base
+    prefab: {fileID: 349877410220497411, guid: 4d2022d330dec5942a22696e4414f932, type: 3}
+    parent: {fileID: 844785420}
+    material: {fileID: 2100000, guid: 31d64d5f6e0497c458a260bd67c6ad49, type: 2}
+    tileID: 3
+  - tileName: Dungeon Wall
+    prefab: {fileID: 349877410220497411, guid: 4d2022d330dec5942a22696e4414f932, type: 3}
+    parent: {fileID: 341015213}
+    material: {fileID: 2100000, guid: 087c353beb19b0945b6268bb5b4fd691, type: 2}
+    tileID: 4
 --- !u!4 &1588673320
 Transform:
   m_ObjectHideFlags: 0
@@ -9128,6 +9116,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1753115740}
   m_CullTransparentMesh: 1
+--- !u!1 &1778463076
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1778463077}
+  m_Layer: 0
+  m_Name: Null
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1778463077
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1778463076}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 286976836}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1813427235
 GameObject:
   m_ObjectHideFlags: 0
@@ -9629,6 +9648,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2046346049}
+  - component: {fileID: 2046346050}
   m_Layer: 0
   m_Name: Floor
   m_TagString: Untagged
@@ -9651,6 +9671,14 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1139544574}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &2046346050
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2046346048}
+  m_Mesh: {fileID: 0}
 --- !u!1 &2109509167
 GameObject:
   m_ObjectHideFlags: 0
@@ -9660,6 +9688,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2109509168}
+  - component: {fileID: 2109509169}
   m_Layer: 0
   m_Name: Walls
   m_TagString: Untagged
@@ -9682,6 +9711,14 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1139544574}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &2109509169
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2109509167}
+  m_Mesh: {fileID: 0}
 --- !u!1 &2113970218
 GameObject:
   m_ObjectHideFlags: 0
