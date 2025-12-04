@@ -494,6 +494,7 @@ public class MapGeneration : MonoBehaviour
                 combinedMesh.CombineMeshes(instances);
                 tileType.parent.GetComponent<MeshFilter>().sharedMesh = combinedMesh;
                 tileType.parent.GetComponent<MeshRenderer>().material = tileType.material;
+                tileType.parent.GetComponent<MeshCollider>().sharedMesh = combinedMesh;
                 tileType.parent.SetActive(true);
             }
             
@@ -835,7 +836,7 @@ public class MapGeneration : MonoBehaviour
             }
             else 
             {
-                choice = GameManager.m_random.Next(0, m_validWall.Count);
+                choice = GameManager.m_random.Next(0, m_validFloor.Count);
                 points.Add(m_validFloor[choice]);
             }
             
@@ -858,7 +859,7 @@ public class MapGeneration : MonoBehaviour
                     }
                     else
                     {
-                        choice = GameManager.m_random.Next(0, m_validWall.Count);
+                        choice = GameManager.m_random.Next(0, m_validFloor.Count);
                         candidates[i] = m_validFloor[choice];
                     }
                 }

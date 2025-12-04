@@ -121,7 +121,7 @@ public class UINavigation : MonoBehaviour
     }
     public void SetIterations(Slider slider)
     {
-        m_PercentageFillText.GetComponent<TextMeshProUGUI>().text = $"Percentage Fill: {(int)slider.value}%";
+        m_IterationsText.GetComponent<TextMeshProUGUI>().text = $"Iterations: {(int)slider.value}%";
     }
     
     public void LimitXSlider(Slider slider) 
