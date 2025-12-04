@@ -1,10 +1,13 @@
 using JetBrains.Annotations;
 using NUnit.Framework;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class MapGeneration : MonoBehaviour
@@ -13,24 +16,29 @@ public class MapGeneration : MonoBehaviour
 
     int m_maxDepth = 4;
     int m_minLeafSize = 10;
-    const int m_borderSize = 3;
-    //Vectors
-    [Header("BSP ,Sizes")]
-    Vector2Int m_dungeonSize = new Vector2Int(100,100);
+    //CellularAutomata
+    bool m_generateCave;
+    int[,] automataGrid;
+    float m_percFill = 0.6f;
+    int m_iterations = 2;
+    //BSP
+    bool m_generateDungeon;
+    Vector2Int m_borderSize = new Vector2Int(3, 3);
+    Vector2Int m_dungeonSize = new Vector2Int(50, 50);
     Vector2Int m_minRoomSize = new Vector2Int(5, 5);
-    Vector2Int m_maxRoomSize = new Vector2Int(20, 20);
-    Vector2Int m_caveBorder = new Vector2Int(); //used for centralizing the dungeon.
-    //Materials
-    [Header("Prefab Requirements")]
-    //Prefabs
+    Vector2Int m_maxRoomSize = new Vector2Int(20, 20); //used for centralizing the dungeon.
+    Vector2Int m_caveBorder = new Vector2Int(0, 0);
+    //Requirements.
     [SerializeField] TileType[] m_tileTypes; //should allow for editor work
-    [SerializeField] MeshFilter[] m_meshFilters;
 
 
     //Private Variables
     //System
-    
-    Tile[,] m_tileGrid;
+    public UnityEvent Generating;
+    public UnityEvent DoneGenerating;
+    //Grids
+    Tile[,] m_bspGrid;
+    Tile[,] m_combinedGrid;
 
 
     //Lists
@@ -48,66 +56,147 @@ public class MapGeneration : MonoBehaviour
 
     //SET
     #region public functions for var setting
-    public void SetMapX(Slider xSlider) 
-    { 
+    public void SetMapX(Slider xSlider)
+    {
         m_dungeonSize.x = (int)xSlider.value;
-        m_caveBorder.x = (GameManager.m_mapX - m_dungeonSize.x);
+        if (m_dungeonSize.x > GameManager.m_mapX)
+        {
+            m_dungeonSize.x = GameManager.m_mapX;
+            xSlider.value = m_dungeonSize.x;
+        }
     }
-    public void SetMapY(Slider ySlider) 
+    public void SetMapY(Slider ySlider)
     {
         m_dungeonSize.y = (int)ySlider.value;
-        Debug.Log(m_dungeonSize);
-        m_caveBorder.y = (GameManager.m_mapY - m_dungeonSize.y);
+        if (m_dungeonSize.y > GameManager.m_mapX)
+        {
+            m_dungeonSize.y = GameManager.m_mapY;
+            ySlider.value = m_dungeonSize.y;
+        }
     }
     public void SetMinLeaf(Slider leafSlider)
     {
         m_minLeafSize = (int)leafSlider.value;
     }
-    public void SetMinX(Slider xSlider) 
+    public void SetMinX(Slider xSlider)
     {
         int x = (int)xSlider.value;
         m_minRoomSize.x = x;
     }
-    public void SetMaxX(Slider xSlider) 
+    public void SetMaxX(Slider xSlider)
     {
         int x = (int)xSlider.value;
         m_maxRoomSize.x = x;
     }
-    public void SetMinY(Slider ySlider) 
+    public void SetMinY(Slider ySlider)
     {
         int y = (int)ySlider.value;
         m_minRoomSize.y = y;
     }
-    public void SetMaxY(Slider ySlider) 
+    public void SetMaxY(Slider ySlider)
     {
         int y = (int)ySlider.value;
         m_maxRoomSize.y = y;
     }
-    public void SetMaxDepth(Slider depthSlider) 
+    public void SetMaxDepth(Slider depthSlider)
     {
         m_maxDepth = (int)depthSlider.value;
     }
-    #endregion
 
-    public void GenerateMap() 
+    public void SetDungeon(bool dungeon) 
     {
+        m_generateDungeon = dungeon;
+    }
+
+    public void SetCave(bool cave) 
+    {
+        m_generateCave = cave;
+    }
+    #endregion
+    public void Generate()
+    {
+        StartCoroutine(GenerateMap());
+    }
+
+    IEnumerator GenerateMap() 
+    {
+        Generating.Invoke();
+        GameManager.SetSeed(GameManager.m_currentSeed); //This ensures every single generation of a certain seed will remain the same.
         ClearTiles();
-        GenerateCave();
-        GenerateBSP();
-        InstantiateGrid(m_tileGrid);
+        yield return new WaitForSeconds(0.1f);
+        if (m_generateCave)
+        { GenerateCave(); }
+        yield return new WaitForSeconds(0.1f);
+        if (m_generateDungeon) 
+        { GenerateBSP(); }
+        yield return new WaitForSeconds(0.1f);
+        CombineGrids();
+        yield return new WaitForSeconds(0.1f);
+        InstantiateGrid(m_combinedGrid);
+        yield return new WaitForSeconds(0.1f);
         MergeMeshes();
+        DoneGenerating.Invoke();
 
     }
-
-    void GenerateCave() 
-    { 
-        
+    #region Cellular Automata
+    void GenerateCave()
+    {
+        for (int x = 0; x < GameManager.m_mapX; x++)
+        {
+            for (int y = 0; y < GameManager.m_mapY; y++)
+            {
+                float randomNo = (float)GameManager.m_random.NextDouble();
+                if (randomNo > m_percFill) { automataGrid[x, y] = 0; }
+                else { automataGrid[x, y] = 1; }
+            }
+        }
+        for (int i = 0; i < (m_iterations + 1); i++)
+        {
+            CaveGame();
+        }
     }
+
+    int CANeighbours(int x, int y)
+    {
+        int neighbours = 0;
+        for (int i = -1; i < 2; i++)
+        {
+            for (int j = -1; j < 2; j++)
+            {
+                if ((x + i > 0) && ((x + i) < (GameManager.m_mapX)))
+                {
+                    if ((y + j > 0) && ((y + j) < (GameManager.m_mapY)))
+                    {
+                        if (automataGrid[(x + i), (y + j)] == 1) { neighbours++; }
+                    }
+
+                }
+            }
+        }
+        if (automataGrid[x, y] == 1) { neighbours--; };
+
+        return neighbours;
+    }
+    void CaveGame()
+    {
+        int currentNeighbours = 0;
+        for (int x = 0; x < GameManager.m_mapX; x++)
+        {
+            for (int y = 0; y < GameManager.m_mapY; y++)
+            {
+                currentNeighbours = CANeighbours(x, y);
+                if (currentNeighbours > 4) { automataGrid[x, y] = 1; }
+                else if (currentNeighbours < 4) { automataGrid[x, y] = 0; }
+            }
+        }
+    }
+    #endregion
     void GenerateBSP() 
     {
-
+        m_caveBorder.x = (GameManager.m_mapX - m_dungeonSize.x) / 2;
+        m_caveBorder.y = (GameManager.m_mapY - m_dungeonSize.y) / 2;
          //Clear Previous Tiles
-        RectInt root = new RectInt (m_borderSize, m_borderSize, Mathf.Max(1, (m_dungeonSize.x - (m_borderSize * 2))), Mathf.Max(1, (m_dungeonSize.y - (m_borderSize * 2))));
+        RectInt root = new RectInt (m_borderSize.x, m_borderSize.y, Mathf.Max(1, (m_dungeonSize.x - (m_borderSize.x * 2))), Mathf.Max(1, (m_dungeonSize.y - (m_borderSize.y * 2))));
       
         rootNode = new BSPNode(root);
         SplitRecursive(rootNode, 0);
@@ -144,22 +233,37 @@ public class MapGeneration : MonoBehaviour
         {
 
             GameObject parent = m_tileTypes[i].parent;
-            Debug.Log(parent.transform.childCount);
 
             for (int j = parent.transform.childCount - 1; j >= 0; j--)
             {
                 GameObject toDelete = parent.transform.GetChild(j).gameObject;
                 DestroyImmediate(toDelete);
             }
-            Debug.Log(parent.transform.childCount);
             parent.GetComponent<MeshFilter>().sharedMesh = new Mesh();
         }
-        m_tileGrid = new Tile[m_dungeonSize.x, m_dungeonSize.y];
+        m_bspGrid = new Tile[m_dungeonSize.x, m_dungeonSize.y];
         for (int x = 0;  x < m_dungeonSize.x; x++) 
         {
             for (int y = 0; y < m_dungeonSize.y; y++)
             {
-                m_tileGrid[x, y] = new Tile(m_tileTypes[0], Vector3.zero);
+                m_bspGrid[x, y] = new Tile(m_tileTypes[0], Vector3.zero);
+            }
+        }
+        m_combinedGrid = new Tile[GameManager.m_mapX, GameManager.m_mapY];
+        for (int x = 0; x < GameManager.m_mapX; x++)
+        {
+            for (int y = 0; y < GameManager.m_mapY; y++)
+            {
+                m_combinedGrid[x, y] = new Tile(m_tileTypes[0], Vector3.zero);
+            }
+        }
+
+        automataGrid = new int[GameManager.m_mapX, GameManager.m_mapY];
+        for (int x = 0; x < GameManager.m_mapX; x++)
+        {
+            for (int y = 0; y < GameManager.m_mapY; y++)
+            {
+                automataGrid[x, y] = 0;
             }
         }
         return true;
@@ -175,7 +279,7 @@ public class MapGeneration : MonoBehaviour
             {
                 for (int y = rect.yMin; y < rect.yMax; y++)
                 {
-                    m_tileGrid[x, y] = tiles[(x - rect.xMin), (y - rect.yMin)];
+                    m_bspGrid[x, y] = tiles[(x - rect.xMin), (y - rect.yMin)];
                 }
             }
         }
@@ -186,14 +290,14 @@ public class MapGeneration : MonoBehaviour
             {
                 for (int x = (int)corridor.start.x; x <= (int)corridor.end.x; x++)
                 {
-                    m_tileGrid[x, (int)corridor.start.y] = new Tile(m_tileTypes[3], new Vector3((x), 0, (corridor.start.y)));
+                    m_bspGrid[x, (int)corridor.start.y] = new Tile(m_tileTypes[3], new Vector3((x), 0, (corridor.start.y)));
                 }
             }
             else 
             {
                 for (int y = (int)corridor.start.y; y <= (int)corridor.end.y; y++)
                 {
-                    m_tileGrid[(int)corridor.start.x, y] = new Tile(m_tileTypes[3], new Vector3((corridor.start.x), 0, (y)));
+                    m_bspGrid[(int)corridor.start.x, y] = new Tile(m_tileTypes[3], new Vector3((corridor.start.x), 0, (y)));
                 }
             }
         }
@@ -207,26 +311,28 @@ public class MapGeneration : MonoBehaviour
             {
                 for (int x = (int)wall.start.x; x <= (int)wall.end.x; x++)
                 {
-                    m_tileGrid[x, (int)(wall.start.y - 1)] = new Tile(m_tileTypes[4], new Vector3((x), 1, (wall.start.y - 1)));
+                    m_bspGrid[x, (int)(wall.start.y - 1)] = new Tile(m_tileTypes[4], new Vector3((x), 1, (wall.start.y - 1)));
                 }
                 for (int x = (int)wall.start.x; x <= (int)wall.end.x; x++)
                 {
-                    m_tileGrid[x, (int)(wall.start.y + 1)] = new Tile(m_tileTypes[4], new Vector3((x), 1, (wall.start.y + 1)));
+                    m_bspGrid[x, (int)(wall.start.y + 1)] = new Tile(m_tileTypes[4], new Vector3((x), 1, (wall.start.y + 1)));
                 }
             }
             else
             {
                 if (CheckNeighbours(new Vector2Int((int)wall.start.x, (int)wall.start.y), "Dungeon Floor")[2] == true)
                 {
-                    m_tileGrid[(int)wall.start.x - 1, (int)(wall.start.y + wall.axis)] = new Tile(m_tileTypes[4], new Vector3(wall.start.x - 1, 1, (wall.start.y + wall.axis)));
+                    m_bspGrid[(int)wall.start.x - 1, (int)(wall.start.y + wall.axis)] = new Tile(m_tileTypes[4], new Vector3(wall.start.x - 1, 1, (wall.start.y + wall.axis)));
+
                 }
                 if (CheckNeighbours(new Vector2Int((int)wall.end.x, (int)wall.end.y), "Dungeon Floor")[3] == true)
                 {
-                    m_tileGrid[(int)wall.end.x + 1, (int)(wall.end.y + wall.axis)] = new Tile(m_tileTypes[4], new Vector3(wall.start.x + 1, 1, (wall.start.y + wall.axis)));
+                    m_bspGrid[(int)wall.end.x + 1, (int)(wall.end.y + wall.axis)] = new Tile(m_tileTypes[4], new Vector3(wall.end.x + 1, 1, (wall.start.y + wall.axis)));
+                    Debug.Log(m_bspGrid[(int)wall.end.x + 1, (int)(wall.end.y + wall.axis)].CheckFor("Dungeon Wall"));
                 }
                 for (int x = (int)wall.start.x; x <= (int)wall.end.x; x++)
                 {
-                    m_tileGrid[x, (int)(wall.start.y + wall.axis)] = new Tile(m_tileTypes[4], new Vector3((x), 1, (wall.start.y + wall.axis)));
+                    m_bspGrid[x, (int)(wall.start.y + wall.axis)] = new Tile(m_tileTypes[4], new Vector3((x), 1, (wall.start.y + wall.axis)));
                 }
             }
         }
@@ -236,32 +342,84 @@ public class MapGeneration : MonoBehaviour
             {
                 for (int y = (int)wall.start.y; y <= wall.end.y; y++)
                 {
-                    m_tileGrid[(int)(wall.start.x + 1), y] = new Tile(m_tileTypes[4], new Vector3((wall.start.x + 1), 1, (y)));
+                    m_bspGrid[(int)(wall.start.x + 1), y] = new Tile(m_tileTypes[4], new Vector3((wall.start.x + 1), 1, (y)));
                 }
                 for (int y = (int)wall.start.y; y <= wall.end.y; y++)
                 {
-                    m_tileGrid[(int)(wall.start.x - 1), y] = new Tile(m_tileTypes[4], new Vector3((wall.start.x - 1), 1, (y)));
+                    m_bspGrid[(int)(wall.start.x - 1), y] = new Tile(m_tileTypes[4], new Vector3((wall.start.x - 1), 1, (y)));
                 }
             }
             else 
             {
                 for (int y = (int)wall.start.y; y <= wall.end.y; y++)
                 {
-                    m_tileGrid[(int)(wall.start.x + wall.axis), y] = new Tile(m_tileTypes[4], new Vector3((wall.start.x + wall.axis), 1, (y)));
+                    m_bspGrid[(int)(wall.start.x + wall.axis), y] = new Tile(m_tileTypes[4], new Vector3((wall.start.x + wall.axis), 1, (y)));
                 }
             }
         }
     }
 
+    void CombineGrids()
+    {
+        m_combinedGrid = new Tile[GameManager.m_mapX, GameManager.m_mapY];
+        if (m_generateCave)
+        {
+            for (int x = 0; x < GameManager.m_mapX; x++) //Cellular Automata
+            {
+                for (int y = 0; y < GameManager.m_mapY; y++)
+                {
+                    if (automataGrid[x, y] == 0)
+                    {
+                        m_combinedGrid[x, y] = new Tile(m_tileTypes[1], new Vector3(x, 0, y));
+                    }
+                    else
+                    {
+                        m_combinedGrid[x, y] = new Tile(m_tileTypes[2], new Vector3(x, 1, y));
+                    }
+                }
+            }
+        }
+        else 
+        {
+            for (int x = 0; x < GameManager.m_mapX; x++) //Cellular Automata
+            {
+                for (int y = 0; y < GameManager.m_mapY; y++)
+                {
+                    m_combinedGrid[x, y] = new Tile(m_tileTypes[0], Vector3.zero;
+                }
+            }
+        }
+        if (m_generateDungeon)
+        {
+            for (int x = 0; x < m_dungeonSize.x; x++)
+            {
+                for (int y = 0; y < m_dungeonSize.y; y++)
+                {
+                    if (m_bspGrid[x, y].GetID() != 0)
+                    {
+                        if (!(automataGrid[x + m_caveBorder.x, y + m_caveBorder.y] == 0 && m_bspGrid[x, y].CheckFor("Dungeon Wall")))
+                        {
+                            Vector3 location = m_bspGrid[x, y].GetPosition();
+                            location.x = location.x + (m_caveBorder.x);
+                            location.z = location.z + (m_caveBorder.y);
+                            m_bspGrid[x, y].SetLocation(location);
+                            m_combinedGrid[(x + m_caveBorder.x), (y + m_caveBorder.y)] = m_bspGrid[x, y];
+                        }
+                    }
+
+                }
+            }
+        }
+    }
     void InstantiateGrid(Tile[,] grid) 
     {
         for (int x = 0; x < grid.GetLength(0); x++) 
         { 
             for (int y = 0; y < grid.GetLength(1); y++) 
             {
-                if (grid[x, y].GetID() != 0 ) 
+                if (grid[x, y].GetID() != 0) 
                 {
-                    Tile tile = m_tileGrid[x, y];
+                    Tile tile = grid[x, y];
                     Material material = tile.GetMaterial();
                     GameObject newTile = Instantiate(tile.GetPrefab(), tile.GetPosition(), Quaternion.identity, tile.GetParent());
                     newTile.GetComponent<Renderer>().material = material;
@@ -480,7 +638,7 @@ public class MapGeneration : MonoBehaviour
                 currentLocation.x = x;
                 currentLocation.y = y;
                 neighbours = CheckNeighbours(currentLocation, "Dungeon Floor");
-                if (m_tileGrid[x, y].CheckFor("Dungeon Floor") && ((neighbours[0] ^ neighbours[1]) || (neighbours[0] && neighbours[1]))) //IF grid is 1, and either only 1 or both are empty.
+                if (m_bspGrid[x, y].CheckFor("Dungeon Floor") && ((neighbours[0] ^ neighbours[1]) || (neighbours[0] && neighbours[1]))) //IF grid is 1, and either only 1 or both are empty.
                 {
                     if (m_horizWalls.Count < 1) 
                     {
@@ -524,7 +682,7 @@ public class MapGeneration : MonoBehaviour
 
                     }
                 }
-                if (m_tileGrid[x, y].CheckFor("Dungeon Floor") && ((neighbours[2] ^ neighbours[3]) || (neighbours[2] && neighbours[3]))) 
+                if (m_bspGrid[x, y].CheckFor("Dungeon Floor") && ((neighbours[2] ^ neighbours[3]) || (neighbours[2] && neighbours[3]))) 
                 {
                     if (m_vertWalls.Count < 1)
                     {
@@ -603,13 +761,13 @@ public class MapGeneration : MonoBehaviour
         if (m_dungeonSize.y > Location.y && Location.y >= 0 && m_dungeonSize.x > Location.x && Location.x >= 0) 
         {
             if (Location.y - 1 < 0) { northEmpty = true; }
-            else if (!m_tileGrid[Location.x, Location.y - 1].CheckFor(checkFor)) { northEmpty = true; }
+            else if (!m_bspGrid[Location.x, Location.y - 1].CheckFor(checkFor)) { northEmpty = true; }
             if (Location.y + 1 >= m_dungeonSize.y) { southEmpty = true; }
-            else if (!m_tileGrid[Location.x, Location.y + 1].CheckFor(checkFor)) { southEmpty = true; }
+            else if (!m_bspGrid[Location.x, Location.y + 1].CheckFor(checkFor)) { southEmpty = true; }
             if (Location.x - 1 < 0) { westEmpty = true; }
-            else if (!m_tileGrid[Location.x - 1, Location.y].CheckFor(checkFor)) { westEmpty = true; }
+            else if (!m_bspGrid[Location.x - 1, Location.y].CheckFor(checkFor)) { westEmpty = true; }
             if (Location.x + 1 >= m_dungeonSize.x) { eastEmpty = true; }
-            else if (!m_tileGrid[Location.x + 1, Location.y].CheckFor(checkFor)) { eastEmpty = true; }
+            else if (!m_bspGrid[Location.x + 1, Location.y].CheckFor(checkFor)) { eastEmpty = true; }
         }
         return new bool[4] { northEmpty, southEmpty, westEmpty, eastEmpty };
     }

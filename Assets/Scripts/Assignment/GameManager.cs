@@ -5,12 +5,14 @@ public static class GameManager
 {
     //Singleton to allow for common variables to be reused across scripts.
     public static int m_seed;
-    public static System.Random m_random = new System.Random(); //Random being here ensures all generation will use the same seed, regardless of script.
+    public static System.Random m_random; //Random being here ensures all generation will use the same seed, regardless of script.
     public static int m_mapX = 50;
     public static int m_mapY = 50;
+    public static string m_currentSeed;
     public static int SetSeed(string seedInput) 
     {
         int seed;
+        m_currentSeed = seedInput;
         if (!int.TryParse(seedInput, out seed)) { seed = 0; }
         
         if (seed != 0) { m_random = new System.Random(seed); } //Set the seed if it's not 0.

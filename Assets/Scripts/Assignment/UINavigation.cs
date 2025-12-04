@@ -41,6 +41,7 @@ public class UINavigation : MonoBehaviour
         CloseOptions.Invoke();
         CloseBSPOptions.Invoke();
         CloseCaveOptions.Invoke();
+        SetSeed("");
     }
     //SETTERS
     public void SetSeed(string seedInput)

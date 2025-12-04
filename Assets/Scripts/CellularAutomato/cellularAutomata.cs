@@ -36,8 +36,6 @@ public class cellularAutomata : MonoBehaviour
             for (int y = 0; y < m_gridSize; y++)
             {
                 float randomNo = (float)m_random.NextDouble();
-                if (x == 0 || x == m_gridSize - 1) { randomNo = 0; }
-                if (y == 0 || y == m_gridSize - 1) { randomNo = 0; }
                 if (randomNo > m_percFill) { m_grid[x, y] = 1; }
                 else { m_grid[x, y] = 0; }
             }
