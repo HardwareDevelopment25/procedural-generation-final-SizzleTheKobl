@@ -3,9 +3,11 @@ using NUnit.Framework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEditor;
+using UnityEditor.Profiling.Memory.Experimental;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -28,6 +30,11 @@ public class MapGeneration : MonoBehaviour
     Vector2Int m_minRoomSize = new Vector2Int(5, 5);
     Vector2Int m_maxRoomSize = new Vector2Int(20, 20); //used for centralizing the dungeon.
     Vector2Int m_caveBorder = new Vector2Int(0, 0);
+    //Best Candidate
+    [SerializeField] PropType[] m_props;
+    List<Vector3> points = new List<Vector3>();
+    List<Vector3> m_validWall = new List<Vector3>();
+    List<Vector3> m_validFloor = new List<Vector3>();
     //Requirements.
     [SerializeField] TileType[] m_tileTypes; //should allow for editor work
 
@@ -50,6 +57,11 @@ public class MapGeneration : MonoBehaviour
     List<Wall> m_vertWalls = new List<Wall>();
 
     private void Start()
+    {
+
+    }
+
+    private void Update()
     {
 
     }
@@ -103,14 +115,24 @@ public class MapGeneration : MonoBehaviour
         m_maxDepth = (int)depthSlider.value;
     }
 
-    public void SetDungeon(bool dungeon) 
+    public void SetDungeon(Toggle dungeon) 
     {
-        m_generateDungeon = dungeon;
+        m_generateDungeon = dungeon.isOn;
     }
 
-    public void SetCave(bool cave) 
+    public void SetCave(Toggle cave) 
     {
-        m_generateCave = cave;
+        m_generateCave = cave.isOn;
+    }
+
+    public void PercentageFill(Slider slider) 
+    {
+        m_percFill = slider.value;
+    }
+
+    public void Iterations(Slider slider)
+    {
+        m_iterations = (int)slider.value;
     }
     #endregion
     public void Generate()
@@ -134,6 +156,7 @@ public class MapGeneration : MonoBehaviour
         yield return new WaitForSeconds(0.1f);
         InstantiateGrid(m_combinedGrid);
         yield return new WaitForSeconds(0.1f);
+        DistributeProps();
         MergeMeshes();
         DoneGenerating.Invoke();
 
@@ -224,6 +247,9 @@ public class MapGeneration : MonoBehaviour
     #region GridWork
     public bool ClearTiles() 
     {
+        m_validFloor.Clear();
+        m_validWall.Clear();
+        points.Clear();
         m_leaves.Clear();
         m_rooms.Clear();
         m_corridors.Clear();
@@ -240,6 +266,17 @@ public class MapGeneration : MonoBehaviour
                 DestroyImmediate(toDelete);
             }
             parent.GetComponent<MeshFilter>().sharedMesh = new Mesh();
+        }
+        for (int i = 0; i < m_props.Length; i++)
+        {
+
+            GameObject parent = m_props[i].parent;
+
+            for (int j = parent.transform.childCount - 1; j >= 0; j--)
+            {
+                GameObject toDelete = parent.transform.GetChild(j).gameObject;
+                DestroyImmediate(toDelete);
+            }
         }
         m_bspGrid = new Tile[m_dungeonSize.x, m_dungeonSize.y];
         for (int x = 0;  x < m_dungeonSize.x; x++) 
@@ -263,7 +300,7 @@ public class MapGeneration : MonoBehaviour
         {
             for (int y = 0; y < GameManager.m_mapY; y++)
             {
-                automataGrid[x, y] = 0;
+                automataGrid[x, y] = 2; //Very stupid fix.
             }
         }
         return true;
@@ -328,7 +365,6 @@ public class MapGeneration : MonoBehaviour
                 if (CheckNeighbours(new Vector2Int((int)wall.end.x, (int)wall.end.y), "Dungeon Floor")[3] == true)
                 {
                     m_bspGrid[(int)wall.end.x + 1, (int)(wall.end.y + wall.axis)] = new Tile(m_tileTypes[4], new Vector3(wall.end.x + 1, 1, (wall.start.y + wall.axis)));
-                    Debug.Log(m_bspGrid[(int)wall.end.x + 1, (int)(wall.end.y + wall.axis)].CheckFor("Dungeon Wall"));
                 }
                 for (int x = (int)wall.start.x; x <= (int)wall.end.x; x++)
                 {
@@ -385,7 +421,7 @@ public class MapGeneration : MonoBehaviour
             {
                 for (int y = 0; y < GameManager.m_mapY; y++)
                 {
-                    m_combinedGrid[x, y] = new Tile(m_tileTypes[0], Vector3.zero;
+                    m_combinedGrid[x, y] = new Tile(m_tileTypes[0], Vector3.zero);
                 }
             }
         }
@@ -423,6 +459,14 @@ public class MapGeneration : MonoBehaviour
                     Material material = tile.GetMaterial();
                     GameObject newTile = Instantiate(tile.GetPrefab(), tile.GetPosition(), Quaternion.identity, tile.GetParent());
                     newTile.GetComponent<Renderer>().material = material;
+                    if (newTile.transform.position.y == 1) 
+                    { 
+                        m_validWall.Add(newTile.transform.position);
+                    }
+                    else 
+                    { 
+                        m_validFloor.Add(newTile.transform.position);
+                    }
                 }
             }
         }
@@ -772,6 +816,76 @@ public class MapGeneration : MonoBehaviour
         return new bool[4] { northEmpty, southEmpty, westEmpty, eastEmpty };
     }
     #endregion
+
+    void DistributeProps() 
+    {
+        int amount = ((GameManager.m_mapY + GameManager.m_mapX) / 8);
+        int choice;
+        Vector3 position = Vector3.zero;
+        foreach (PropType prop in m_props) 
+        {
+            points.Clear();
+            if (prop.isWall) 
+            {
+                if (m_generateCave)
+                {
+                    choice = GameManager.m_random.Next(0, m_validWall.Count);
+                    points.Add(m_validWall[choice]);
+                }
+            }
+            else 
+            {
+                choice = GameManager.m_random.Next(0, m_validWall.Count);
+                points.Add(m_validFloor[choice]);
+            }
+            
+            int total = 0;
+            float currDis = 0;
+            float minDis = float.MaxValue;
+            float[] candDist = new float[prop.candidates];
+            while (total < amount)
+            {
+                Vector3[] candidates = new Vector3[prop.candidates];
+                for (int i = 0; i < prop.candidates; i++)
+                {
+                    if (prop.isWall)
+                    {
+                        if (m_generateCave)
+                        {
+                            choice = GameManager.m_random.Next(0, m_validWall.Count);
+                            candidates[i] = m_validWall[choice];
+                        }
+                    }
+                    else
+                    {
+                        choice = GameManager.m_random.Next(0, m_validWall.Count);
+                        candidates[i] = m_validFloor[choice];
+                    }
+                }
+                for (int candidate = 0; candidate < candidates.Length; candidate++)
+                {
+                    minDis = float.MaxValue;
+                    foreach (Vector3 point in points)
+                    {
+                        currDis = Mathf.Abs(Vector3.Distance(candidates[candidate], point));
+                        if ((currDis < minDis)) { minDis = currDis; }
+                    }
+                    candDist[candidate] = minDis;
+                }
+                int chosenCandidate = candDist.ToList().IndexOf(candDist.Max());
+                points.Add(candidates[chosenCandidate]); 
+                total++;
+                //GameObject newProp = Instantiate(prop.prefab, position, Quaternion.identity, prop.parent.transform);
+
+            }
+            foreach (Vector3 point in points) 
+            {
+                position = new Vector3(point.x, 1.1f, point.z);
+                GameObject newProp = Instantiate(prop.prefab, position, quaternion.identity, prop.parent.transform);
+                newProp.GetComponent<MeshRenderer>().material = prop.material;
+            }
+        }
+    }
 }
 
 [System.Serializable]
@@ -957,5 +1071,16 @@ public struct TileType
     public GameObject parent;
     public Material material;
     public int tileID;
+}
+
+[System.Serializable]
+public struct PropType 
+{
+    public string propName;
+    public GameObject prefab;
+    public GameObject parent;
+    public Material material;
+    public int candidates;
+    public bool isWall;
 }
 #endregion

@@ -20,7 +20,8 @@ public class UINavigation : MonoBehaviour
     [SerializeField] GameObject m_minRoomYText;
     [SerializeField] GameObject m_maxRoomXText;
     [SerializeField] GameObject m_maxRoomYText;
-    [SerializeField] GameObject m_oreDensityText;
+    [SerializeField] GameObject m_PercentageFillText;
+    [SerializeField] GameObject m_IterationsText;
 
     //EVENTS
     public UnityEvent OpenOptions;
@@ -31,6 +32,9 @@ public class UINavigation : MonoBehaviour
 
     public UnityEvent OpenCaveOptions;
     public UnityEvent CloseCaveOptions;
+
+    public UnityEvent FixSliderX;
+    public UnityEvent FixSliderY;
 
     //VARIABLES
     bool m_optionsOpen = false;
@@ -56,6 +60,7 @@ public class UINavigation : MonoBehaviour
         int xInput = (int)xSlider.value;
         GameManager.m_mapX = xInput;
         m_XText.GetComponent<TextMeshProUGUI>().text = $"X: {xInput.ToString()}";
+        FixSliderX.Invoke();
     }
 
     public void SetYSize(Slider ySlider)
@@ -63,6 +68,7 @@ public class UINavigation : MonoBehaviour
         int yInput = (int)ySlider.value;
         GameManager.m_mapY = yInput;
         m_YText.GetComponent<TextMeshProUGUI>().text = $"Y: {yInput.ToString()}";
+        FixSliderY.Invoke();
     }
 
     public void SetBSPXSize(Slider xSlider)
@@ -106,6 +112,26 @@ public class UINavigation : MonoBehaviour
     {
         int yInput = (int)ySlider.value;
         m_maxRoomYText.GetComponent<TextMeshProUGUI>().text = $"Y: {yInput.ToString()}";
+    }
+
+    public void SetPercFill(Slider slider) 
+    {
+        float percentage = slider.value * 100;
+        m_PercentageFillText.GetComponent<TextMeshProUGUI>().text = $"Percentage Fill: {percentage}%";
+    }
+    public void SetIterations(Slider slider)
+    {
+        m_PercentageFillText.GetComponent<TextMeshProUGUI>().text = $"Percentage Fill: {(int)slider.value}%";
+    }
+    
+    public void LimitXSlider(Slider slider) 
+    { 
+        if (slider.value > GameManager.m_mapX) { slider.value = GameManager.m_mapX; }
+    }
+
+    public void LimitYSlider(Slider slider)
+    {
+        if (slider.value > GameManager.m_mapY) { slider.value = GameManager.m_mapY; }
     }
     public void BSPOptions(Toggle bspOpen) 
     {
