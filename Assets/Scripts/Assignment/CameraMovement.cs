@@ -53,7 +53,7 @@ public class CameraMovement : MonoBehaviour
 
     public void ZoomCamera(float axis) 
     {
-        if (axis == 1 && m_camera.transform.position.y < 50)
+        if (axis == 1 && m_camera.transform.position.y < 100)
         {
             Vector3 position = m_camera.transform.position;
             position.y += 10;

@@ -171,4 +171,9 @@ public class UINavigation : MonoBehaviour
             m_optionsOpen = true;
         }
     }
+
+    public void QuitGame() 
+    {
+        Application.Quit();
+    }
 }
