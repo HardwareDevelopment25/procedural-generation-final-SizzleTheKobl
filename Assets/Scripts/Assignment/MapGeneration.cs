@@ -1,6 +1,8 @@
+using JetBrains.Annotations;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,6 +24,7 @@ public class MapGeneration : MonoBehaviour
     [Header("Prefab Requirements")]
     //Prefabs
     [SerializeField] TileType[] m_tileTypes; //should allow for editor work
+    [SerializeField] MeshFilter[] m_meshFilters;
 
 
     //Private Variables
@@ -34,7 +37,7 @@ public class MapGeneration : MonoBehaviour
     [SerializeField] BSPNode rootNode;
     List<BSPNode> m_leaves = new List<BSPNode>();
     List<Room> m_rooms = new List<Room>();
-    List<RectInt> m_corridors = new List<RectInt>();
+    List<Wall> m_corridors = new List<Wall>();
     List<Wall> m_horizWalls = new List<Wall>();
     List<Wall> m_vertWalls = new List<Wall>();
 
@@ -88,9 +91,12 @@ public class MapGeneration : MonoBehaviour
 
     public void GenerateMap() 
     {
+        ClearTiles();
         GenerateCave();
         GenerateBSP();
         InstantiateGrid(m_tileGrid);
+        MergeMeshes();
+
     }
 
     void GenerateCave() 
@@ -100,7 +106,7 @@ public class MapGeneration : MonoBehaviour
     void GenerateBSP() 
     {
 
-        ClearTiles(); //Clear Previous Tiles
+         //Clear Previous Tiles
         RectInt root = new RectInt (m_borderSize, m_borderSize, Mathf.Max(1, (m_dungeonSize.x - (m_borderSize * 2))), Mathf.Max(1, (m_dungeonSize.y - (m_borderSize * 2))));
       
         rootNode = new BSPNode(root);
@@ -122,12 +128,12 @@ public class MapGeneration : MonoBehaviour
         ConnectTree(rootNode);
         RasterizeBSPGrid();
         DefineWalls();
-        
+        RasterizeWalls();
     }
 
     //All work to do with Instantiating/Rasterising the grid.
     #region GridWork
-    void ClearTiles() 
+    public bool ClearTiles() 
     {
         m_leaves.Clear();
         m_rooms.Clear();
@@ -136,11 +142,17 @@ public class MapGeneration : MonoBehaviour
         m_vertWalls.Clear();
         for (int i = 0; i < m_tileTypes.Length; i++)
         {
+
             GameObject parent = m_tileTypes[i].parent;
-            foreach (Transform g in parent.transform) 
+            Debug.Log(parent.transform.childCount);
+
+            for (int j = parent.transform.childCount - 1; j >= 0; j--)
             {
-                Destroy(g.gameObject);
+                GameObject toDelete = parent.transform.GetChild(j).gameObject;
+                DestroyImmediate(toDelete);
             }
+            Debug.Log(parent.transform.childCount);
+            parent.GetComponent<MeshFilter>().sharedMesh = new Mesh();
         }
         m_tileGrid = new Tile[m_dungeonSize.x, m_dungeonSize.y];
         for (int x = 0;  x < m_dungeonSize.x; x++) 
@@ -150,6 +162,7 @@ public class MapGeneration : MonoBehaviour
                 m_tileGrid[x, y] = new Tile(m_tileTypes[0], Vector3.zero);
             }
         }
+        return true;
     }
     
     void RasterizeBSPGrid() 
@@ -167,30 +180,76 @@ public class MapGeneration : MonoBehaviour
             }
         }
 
-        foreach (RectInt corridor in m_corridors)
+        foreach (Wall corridor in m_corridors)
         {
-            for (int x = corridor.xMin; x < corridor.xMax; x++)
+            if (corridor.start.y == corridor.end.y) 
             {
-                for (int y = corridor.yMin; y < corridor.yMax; y++)
+                for (int x = (int)corridor.start.x; x <= (int)corridor.end.x; x++)
                 {
-                    m_tileGrid[x, y] = new Tile(m_tileTypes[3], new Vector3 (x, 0, y));
+                    m_tileGrid[x, (int)corridor.start.y] = new Tile(m_tileTypes[3], new Vector3((x), 0, (corridor.start.y)));
+                }
+            }
+            else 
+            {
+                for (int y = (int)corridor.start.y; y <= (int)corridor.end.y; y++)
+                {
+                    m_tileGrid[(int)corridor.start.x, y] = new Tile(m_tileTypes[3], new Vector3((corridor.start.x), 0, (y)));
                 }
             }
         }
     }
 
     void RasterizeWalls() 
-    { 
-        foreach (Wall wall in m_horizWalls) 
+    {
+        foreach (Wall wall in m_horizWalls)
         {
-            if (CheckNeighbours(new Vector2Int((int)wall.start.x, (int)wall.start.y), "Dungeon Floor")[0] == true) 
-            { 
-                
+            if (wall.isCorridor)
+            {
+                for (int x = (int)wall.start.x; x <= (int)wall.end.x; x++)
+                {
+                    m_tileGrid[x, (int)(wall.start.y - 1)] = new Tile(m_tileTypes[4], new Vector3((x), 1, (wall.start.y - 1)));
+                }
+                for (int x = (int)wall.start.x; x <= (int)wall.end.x; x++)
+                {
+                    m_tileGrid[x, (int)(wall.start.y + 1)] = new Tile(m_tileTypes[4], new Vector3((x), 1, (wall.start.y + 1)));
+                }
+            }
+            else
+            {
+                if (CheckNeighbours(new Vector2Int((int)wall.start.x, (int)wall.start.y), "Dungeon Floor")[2] == true)
+                {
+                    m_tileGrid[(int)wall.start.x - 1, (int)(wall.start.y + wall.axis)] = new Tile(m_tileTypes[4], new Vector3(wall.start.x - 1, 1, (wall.start.y + wall.axis)));
+                }
+                if (CheckNeighbours(new Vector2Int((int)wall.end.x, (int)wall.end.y), "Dungeon Floor")[3] == true)
+                {
+                    m_tileGrid[(int)wall.end.x + 1, (int)(wall.end.y + wall.axis)] = new Tile(m_tileTypes[4], new Vector3(wall.start.x + 1, 1, (wall.start.y + wall.axis)));
+                }
+                for (int x = (int)wall.start.x; x <= (int)wall.end.x; x++)
+                {
+                    m_tileGrid[x, (int)(wall.start.y + wall.axis)] = new Tile(m_tileTypes[4], new Vector3((x), 1, (wall.start.y + wall.axis)));
+                }
             }
         }
         foreach (Wall wall in m_vertWalls) 
-        { 
-            
+        {
+            if (wall.isCorridor)
+            {
+                for (int y = (int)wall.start.y; y <= wall.end.y; y++)
+                {
+                    m_tileGrid[(int)(wall.start.x + 1), y] = new Tile(m_tileTypes[4], new Vector3((wall.start.x + 1), 1, (y)));
+                }
+                for (int y = (int)wall.start.y; y <= wall.end.y; y++)
+                {
+                    m_tileGrid[(int)(wall.start.x - 1), y] = new Tile(m_tileTypes[4], new Vector3((wall.start.x - 1), 1, (y)));
+                }
+            }
+            else 
+            {
+                for (int y = (int)wall.start.y; y <= wall.end.y; y++)
+                {
+                    m_tileGrid[(int)(wall.start.x + wall.axis), y] = new Tile(m_tileTypes[4], new Vector3((wall.start.x + wall.axis), 1, (y)));
+                }
+            }
         }
     }
 
@@ -211,55 +270,33 @@ public class MapGeneration : MonoBehaviour
         }
     }
 
-    void MergeGrid() 
+    void MergeMeshes() 
     { 
-        
+        foreach (TileType tileType in m_tileTypes)
+        {
+            if (tileType.parent.transform.childCount > 0)
+            {
+                tileType.parent.GetComponent<MeshFilter>().sharedMesh = new Mesh();
+                CombineInstance[] instances = new CombineInstance[tileType.parent.transform.childCount];
+                for (int i = 0; i < tileType.parent.transform.childCount; i++)
+                {
+                    Transform child = tileType.parent.transform.GetChild(i);
+                    MeshFilter meshFilter = child.GetComponent<MeshFilter>();
+                    instances[i].mesh = meshFilter.sharedMesh;
+                    instances[i].transform = child.localToWorldMatrix;
+                    meshFilter.gameObject.SetActive(false);
+                }
+
+                Mesh combinedMesh = new Mesh();
+                combinedMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+                combinedMesh.CombineMeshes(instances);
+                tileType.parent.GetComponent<MeshFilter>().sharedMesh = combinedMesh;
+                tileType.parent.GetComponent<MeshRenderer>().material = tileType.material;
+                tileType.parent.SetActive(true);
+            }
+            
+        }
     }
-    
-    //void InstantiateWalls()
-    //{
-    //    Vector3 placePos = Vector3.zero;
-    //    GameObject newWall = m_wallPrefab;
-    //    foreach (Wall wall in m_horizWalls) 
-    //    {
-
-    //        placePos = new Vector3((wall.start.x + (wall.length / 2)), 1, (wall.start.y));
-    //        newWall.transform.localScale = new Vector3(wall.length + 1, 1, 1);
-    //        if (wall.isCorridor)
-    //        {
-    //            placePos.z -= 1;
-    //            Instantiate(newWall, placePos, Quaternion.identity, m_wallParent.transform);
-
-    //            placePos.z += 2;
-    //            Instantiate(newWall, placePos, Quaternion.identity, m_wallParent.transform);
-    //        }
-    //        else 
-    //        {
-    //            placePos.z += wall.axis;
-    //            Instantiate(newWall, placePos, Quaternion.identity, m_wallParent.transform);
-    //        }
-    //    }
-    //    foreach (Wall wall in m_vertWalls)
-    //    {
-
-    //        placePos = new Vector3((wall.start.x), 1, (wall.start.y + (wall.length / 2)));
-    //        newWall.transform.localScale = new Vector3(1, 1, wall.length + 1);
-    //        if (wall.isCorridor)
-    //        {
-    //            placePos.x -= 1;
-    //            Instantiate(newWall, placePos, Quaternion.identity, m_wallParent.transform);
-
-    //            placePos.x += 2;
-    //            Instantiate(newWall, placePos, Quaternion.identity, m_wallParent.transform);
-    //        }
-    //        else
-    //        {
-
-    //            placePos.x += wall.axis;
-    //            Instantiate(newWall, placePos, Quaternion.identity, m_wallParent.transform);
-    //        }
-    //    }
-    //}
 
     #endregion
     //General BSP algorithm, including getting leaves, creating rooms and connecting the tree.
@@ -380,21 +417,49 @@ public class MapGeneration : MonoBehaviour
 
     void CreateCorridor(Vector2Int from, Vector2Int to) 
     {
-        int corridorWidth = 1;
+
+        Vector2 start;
+        Vector2 end;
+        Wall newCorridor = new Wall();
+        int length;
         if (from.y == to.y) 
         {
-            int x = Mathf.Min(from.x, to.x);
-            int w = Mathf.Abs(from.x - to.x) + 1;
-            var rect = new RectInt(x - corridorWidth / 2, from.y - corridorWidth / 2, w, corridorWidth);
-            m_corridors.Add(rect);
+            if (from.x < to.x) 
+            {
+                start = new Vector2(from.x, from.y);
+                end = new Vector2(to.x, to.y);
+                length = (from.x - to.x);
+            }
+            else 
+            {
+                start = new Vector2(to.x, to.y);
+                end = new Vector2(from.x, from.y);
+                length = (to.x - from.x);
+            }
+            newCorridor.length = length;
+            newCorridor.start = start;
+            newCorridor.end = end;
+            m_corridors.Add(newCorridor);
             return;
         }
         if (from.x == to.x)
         {
-            int y = Mathf.Min(from.y, to.y);
-            int w = Mathf.Abs(from.y - to.y) + 1;
-            var rect = new RectInt(from.x - corridorWidth / 2, y - corridorWidth / 2, corridorWidth, w);
-            m_corridors.Add(rect);
+            if (from.y < to.y)
+            {
+                start = new Vector2(from.x, from.y);
+                end = new Vector2(to.x, to.y);
+                length = (from.y - to.y);
+            }
+            else
+            {
+                start = new Vector2(to.x, to.y);
+                end = new Vector2(from.x, from.y);
+                length = (to.y - from.y);
+            }
+            newCorridor.length = length;
+            newCorridor.start = start;
+            newCorridor.end = end;
+            m_corridors.Add(newCorridor);
             return;
         }
     }
